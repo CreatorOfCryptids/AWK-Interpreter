@@ -1,16 +1,12 @@
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
+//import java.util.*;
 
 public class StringHandler {
 
     private String file = "";
     private int fingerIndex = 0;
 
-    StringHandler(String fileName){
-        Path myPath = Paths.get(fileName);
-        String file = new String(Files.readAllBytes (myPath));
+    StringHandler(String file){
+        this.file = file;
     }
 
     /**
@@ -49,8 +45,11 @@ public class StringHandler {
      * @param i How far the index moves
      * Moves the index ahead “i” positions
      */
-    public void swallow(int i){
-        fingerIndex += i;
+    public void swallow(int i) throws ArrayIndexOutOfBoundsException{
+        if (i >=0)
+            fingerIndex += i;
+        else 
+            throw new ArrayIndexOutOfBoundsException();
     }
 
     /**
@@ -69,6 +68,15 @@ public class StringHandler {
      */
     public String remainder() {
         return file.substring(fingerIndex);
+    }
+
+    /**
+     * The getFingerIndex() method.
+     * @return The current index of the finger.
+     * This is just for testing pourposes. 
+     */
+    public int getFingerIndex(){
+        return fingerIndex;
     }
 }
 
