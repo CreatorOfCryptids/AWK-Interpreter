@@ -8,11 +8,15 @@ public class Lexer {
         LinkedList<Token> tokenList = new LinkedList<Token>();
         int lineNumber = 1;
         int position = 0;
+        String currentToken = "";
 
         while (handler.isDone()){
+
             char next = handler.peek(1);
-            String currentToken = "";
-            if (next = \)
+            
+            if (next == '\\'){
+                
+            }
             if(next == ' '){
 
             }
