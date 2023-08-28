@@ -5,6 +5,10 @@ public class StringHandler {
     private String file = "";
     private int fingerIndex = 0;
 
+    /**
+     * Constructor
+     * @param file The sting containing the information in the file.
+     */
     StringHandler(String file){
         this.file = file;
     }
@@ -35,7 +39,7 @@ public class StringHandler {
      * Returns the next character and moves the index
      */
     public char getChar(){
-        char output = file.charAt(fingerIndex+1);
+        char output = file.charAt(fingerIndex);
         fingerIndex++;
         return output;
     }
@@ -58,13 +62,13 @@ public class StringHandler {
      * Returns true if we are at the end of the document.
      */
     public boolean isDone(){
-        return (file.length() > fingerIndex);
+        return (file.length() <= fingerIndex);
     }
 
     /**
      * The remainder() method.
      * @return A string of the rest of the document.
-     * Returns the rest of the document as a string
+     * Returns the rest of the document as a string.
      */
     public String remainder() {
         return file.substring(fingerIndex);

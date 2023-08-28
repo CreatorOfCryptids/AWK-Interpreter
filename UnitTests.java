@@ -5,6 +5,11 @@ import org.junit.Test;
 public class UnitTests {
 
     String fileName = "text1.txt";
+    String testString = "TestAlphabeticWord Test_Words_With_Underscores Tes5tW0rdsW1thNum8ers testLowercase TEST_UPPPERCASE\n" +
+            "WhatAboutA2ndLine Does_That_Still_Work AreY0uSur3 are_you_really_sure TOTALY_POSITIVE\n" + 
+            "3 14 159 265359 2.718281828459045 127.0.0.1 \n" + 
+            "WordsThen 1039257.3\n" + 
+            "8792305 ThenWords";
 
     @Test 
     public void SH_peek() throws Exception{
@@ -49,7 +54,14 @@ public class UnitTests {
             "3 14 159 265359 2.718281828459045 127.0.0.1 \n" + 
             "WordsThen 1039257.3\n" + 
             "8792305 ThenWords");
-        Assert.assertEquals("TestAlphabeticWord", test.peekString(14));
+        Assert.assertEquals("", test.peekString(0));
+        Assert.assertEquals("Test", test.peekString(4));
+        Assert.assertEquals("TestAlphabeticWord", test.peekString(18));
+        test.swallow(99);
+        Assert.assertEquals("WhatAboutA2ndLine", test.peekString(17));
+        test.swallow(70);
+        Assert.assertEquals("TOTALY_POSITIVE\n" + 
+                "3 14 159", test.peekString(24));
     }
 
     @Test
@@ -60,7 +72,14 @@ public class UnitTests {
             "3 14 159 265359 2.718281828459045 127.0.0.1 \n" + 
             "WordsThen 1039257.3\n" + 
             "8792305 ThenWords");
-        Assert.assertTrue(false);
+
+        Assert.assertEquals(0, test.getFingerIndex());
+        Assert.assertEquals('T', test.getChar());
+        Assert.assertEquals(1, test.getFingerIndex());
+        for (int i=1; i<testString.length(); i++){
+            Assert.assertEquals(testString.charAt(i), test.getChar());
+        }
+
     }
 
     @Test
@@ -89,7 +108,14 @@ public class UnitTests {
             "3 14 159 265359 2.718281828459045 127.0.0.1 \n" + 
             "WordsThen 1039257.3\n" + 
             "8792305 ThenWords");
-        Assert.assertTrue(false);
+
+        Assert.assertFalse(test.isDone());
+        test.swallow(100);
+        Assert.assertFalse(test.isDone());
+        test.swallow(166);
+        Assert.assertFalse(test.isDone());
+        test.swallow(1);
+        Assert.assertTrue(test.isDone());
     }
 
     @Test
@@ -100,9 +126,19 @@ public class UnitTests {
             "3 14 159 265359 2.718281828459045 127.0.0.1 \n" + 
             "WordsThen 1039257.3\n" + 
             "8792305 ThenWords");
-        Assert.assertTrue(false);
+        Assert.assertEquals(testString, test.remainder());
+        test.swallow(99);
+        Assert.assertEquals(
+            "WhatAboutA2ndLine Does_That_Still_Work AreY0uSur3 are_you_really_sure TOTALY_POSITIVE\n" + 
+            "3 14 159 265359 2.718281828459045 127.0.0.1 \n" + 
+            "WordsThen 1039257.3\n" + 
+            "8792305 ThenWords", 
+            test.remainder());
+        test.swallow(86+45+20);
+        Assert.assertEquals("8792305 ThenWords", test.remainder());
     }
 
+    /*
     @Test
     public void StringHandler() throws Exception {
         StringHandler test = new StringHandler(
@@ -112,6 +148,11 @@ public class UnitTests {
             "WordsThen 1039257.3\n" + 
             "8792305 ThenWords");
         Assert.assertTrue(false);
+    }/* */
+
+    @Test
+    public void LEX_lex() throws Exception{
+        
     }
 
     @Test
@@ -124,13 +165,21 @@ public class UnitTests {
         Assert.assertTrue(false);
     }
 
+    /*
     @Test
     public void Lexer() throws Exception {
         Assert.assertTrue(false);
+    }/* */
+
+    @Test
+    public void T_toString() throws Exception {
+        Token testToken = new Token();
+        Assert.assertEquals("WORD(TestAlphabeticWord)", testToken.toString());
     }
 
+    /*
     @Test
     public void Token() throws Exception {
         Assert.assertTrue(false);
-    }
+    }/* */
 }
