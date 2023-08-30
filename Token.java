@@ -1,19 +1,38 @@
 
 public class Token{
-    enum TokenType{WORD, NUMBER, SEPERATOR}
-    String value;
-    TokenType type;
-    int lineNumber;
-    int inLineIndex;
+    public enum Type{WORD, NUMBER, SEPERATOR}
+    
+    private String value;
+    private Type type;
+    private int lineNumber;
+    private int index;
+
+    /**
+     * The null string TokenType constructor.
+     */
+    Token(Type token, int lineNumber, int index){
+        this.type = token;
+        this.lineNumber = lineNumber;
+        this.index = index;
+    }
 
     /**
      * The TokenType constructor.
      */
-    Token(){
-        
+    Token(Type token, String word, int lineNumber, int index){
+        this.type = token;
+        this.value = word;
+        this.lineNumber = lineNumber;
+        this.index = index;
     }
 
+    /**
+     * The toString() method.
+     */
     public String toString(){
-        return type + "(" +value + ")";
+        if (value == null) 
+            return type.toString();
+        else
+            return type.toString() + "(" + value + ")";
     }
 }
