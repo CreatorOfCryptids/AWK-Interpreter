@@ -20,7 +20,11 @@ public class StringHandler {
     * Looks “i” characters ahead and returns that character; doesn’t move the index.
     */
     public char peek(int i){
-        return fileData.charAt(currentIndex+i);
+        // Make sure the index is not beond the end of the string.
+        if((currentIndex+i < fileData.length()))
+            return fileData.charAt(currentIndex+i);
+        else
+            return ' ';
     }
 
     /**
@@ -29,7 +33,11 @@ public class StringHandler {
      * @return The next character
      */
     public char peek(){
-        return fileData.charAt(currentIndex);
+        // Make sure the index is not beond the end of the string.
+        if((currentIndex < fileData.length()))
+            return fileData.charAt(currentIndex);
+        else
+            return ' ';
     }
 
     /**
@@ -50,7 +58,7 @@ public class StringHandler {
     public char getChar(){
         char output = fileData.charAt(currentIndex);
         currentIndex++;
-        return output;
+        return output;   
     }
 
     /**
@@ -67,8 +75,7 @@ public class StringHandler {
 
     /**
      * The isDone() method.
-     * @return True if the index is at the end of the document, false if not.
-     * Returns true if we are at the end of the document.
+     * @return True if the index is at the end of the document. False if not.
      */
     public boolean isDone(){
         return (fileData.length() <= currentIndex);
@@ -76,20 +83,19 @@ public class StringHandler {
 
     /**
      * The remainder() method.
-     * @return A string of the rest of the document.
-     * Returns the rest of the document as a string.
+     * @return The rest of the input file as a single string.
      */
     public String remainder() {
         return fileData.substring(currentIndex);
     }
 
     /**
-     * The getFingerIndex() method.
-     * @return The current index of the finger.
      * Shhhhh! This is just for testing pourposes. 
-     *
-    public int getFingerIndex(){
-        return fingerIndex;
+     * The getCurrentIndex() method.
+     * @return The current index of the finger.
+     */
+    public int getCurrentIndex(){
+        return currentIndex;
     }/**/
 }
 
