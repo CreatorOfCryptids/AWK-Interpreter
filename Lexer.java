@@ -10,7 +10,7 @@ public class Lexer {
     public Lexer(String fileData){
         h = new StringHandler(fileData);
         lineNumber = 1; // The current line.
-        position = 0;   // The current index inside the current line.
+        position = 1;   // The current index inside the current line.
     }
     
     public LinkedList<Token> lex() throws Exception{
@@ -20,12 +20,13 @@ public class Lexer {
             // Skip to the next character if its a whitespace character
             if (c == ' ' || c == '\t' || c == '\r'){
                 h.swallow(1);
+                position++;
             }
             // Generate a seperator token if its a newline character.
             else if (c == '\n'){
                 tokenList.add(new Token(Token.Type.SEPERATOR, null, lineNumber, position));
                 lineNumber++;
-                position = 0;
+                position = 1;
                 h.swallow(1);
             }
             // Create a new number token if it is a number character or period.
