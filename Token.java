@@ -2,10 +2,10 @@
 public class Token{
     public enum Type{WORD, NUMBER, SEPERATOR}
     
-    private String value;
-    private Type type;
-    private int lineNumber;
-    private int index;
+    private String value;   // The actual string passed to the class
+    private Type type;      // Stores the type of value
+    private int lineNumber; // Stores the line number of the token
+    private int index;      // Stores the index of the token within it's line number
 
     /**
      * The null string TokenType constructor.
