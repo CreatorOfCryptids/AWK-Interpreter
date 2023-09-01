@@ -17,7 +17,8 @@ public class UnitTests {
     @Test 
     public void SH_peek() throws Exception{
         StringHandler testHandler = new StringHandler(testString);
-        
+
+        //loops thru each and every character in the thing to see if it works.
         for (int i = 0; i<testString.length(); i++){
             Assert.assertEquals(testString.charAt(i), testHandler.peek(i));
             Assert.assertEquals(0, testHandler.getCurrentIndex());
@@ -27,6 +28,7 @@ public class UnitTests {
         Assert.assertEquals(19, testHandler.getCurrentIndex());
         // Checks if it works when the finger index is greater than 0.
         for(int i=0; i<(testString.length()-19); i++)
+            Assert.assertEquals(testString.charAt(i+19), testHandler.peek(i));
         // Checks that the finger isn't moved.
         Assert.assertEquals(19, testHandler.getCurrentIndex());
     }

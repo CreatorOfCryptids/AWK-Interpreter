@@ -5,7 +5,7 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 
 public class awk {
-    public static void main(String[] args) throws IOException{
+    public static void main(String[] args) throws Exception{
         //Choose file.
         String fileName = "test1.txt";
 

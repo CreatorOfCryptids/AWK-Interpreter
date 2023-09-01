@@ -13,7 +13,7 @@ public class Lexer {
         position = 0;   // The current index inside the current line.
     }
     
-    public LinkedList<Token> lex(){
+    public LinkedList<Token> lex() throws Exception{
         // Loop thru all the data from the file.
         while (!h.isDone()){
             char c = h.peek();  // Look ahead to the next character to determin what to do
@@ -36,10 +36,9 @@ public class Lexer {
             else if (Character.isAlphabetic(c)){
                 tokenList.add(processWord());
             }
-            // If we don't regognise the character, alert the user and quit.
+            // If we don't regognise the character, throw an exception.
             else{
-                System.out.println("The unrecognised character \"" + c + "\" appeared in Line: " + lineNumber + " Position: " + position + ".");
-                break;
+                throw new Exception();
             }
         }
         return tokenList;
