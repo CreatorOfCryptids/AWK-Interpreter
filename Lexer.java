@@ -48,8 +48,8 @@ public class Lexer {
                 }
             }
             // String literals
-            else if (c == '\"'){
-
+            else if (c == '\"'){                
+                tokenList.add(processStringLiterals());
             }
             // Create a new number token if it is a number character or period.
             else if (Character.isDigit(c) || c == '.'){
@@ -61,7 +61,7 @@ public class Lexer {
             }
             // If we don't regognise the character, throw an exception.
             else{
-                throw new Exception();
+                throw new Exception("We caught a \'" + c + "\' at Line: " + lineNumber + " Position: " + h.getCurrentIndex());
             }
         }
         return tokenList;
@@ -69,7 +69,7 @@ public class Lexer {
 
     /**
      * The processWord() method.
-     * @return A token generated from the collected word.
+     * @return A word token generated from the collected word.
      */
     private Token processWord() {
         String word = "";           // Stores the collected letters.
@@ -102,7 +102,7 @@ public class Lexer {
 
     /**
      * The processNumber() method.
-     * @return
+     * @return A number token generated from the collected number sequence
      */
     private Token processNumber(){
         boolean foundPeriod = false;
@@ -132,9 +132,37 @@ public class Lexer {
         return numberToken;
     }
 
-    
-    private Token processStringLiterals(){
-        
+    /**
+     * The processStringLiteral() method.
+     * @return A StringLiteral token generated from the string literal.
+     * @throws Exception
+     */
+    private Token processStringLiterals() throws Exception{
+        h.swallow(1);
+        String stringLiteral = "";
+        char c = h.peek();
+        int stringStart = position;
+        position++;
+        while (!h.isDone() && (c != '\"')){
+            stringLiteral += h.getChar();
+            c = h.peek();
+            position++;
+            if (c == '\\' && !h.isDone()){
+                h.swallow(1);
+                stringLiteral += h.getChar();
+                position+=2;
+                c = h.peek();
+            }
+
+            if (/*h.isDone() ||/**/ c == '\n'){
+                throw new Exception();
+            }
+        }
+        h.swallow(2);
+        position+=2;
+
+        Token stringToken = new Token(Token.Type.STRINGLITERAL, stringLiteral, lineNumber, stringStart);
+        return stringToken;
     }
 
     /**

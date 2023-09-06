@@ -18,7 +18,7 @@ public class UnitTests {
     String testString2 = 
     "test for test while hello test do test break examin if whatabout continue tryan else butwhatif reurn andwecantforgetabout BEGIN waitand END" +
     "butwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function" + 
-    "\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test";
+    "\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldn'tforget the\"\" `*patern*`";
     String desiredOutput2 = "";
 
     @Test 
@@ -117,7 +117,7 @@ public class UnitTests {
     }/* */
 
     @Test
-    public void LEX() throws Exception{
+    public void LEX1() throws Exception{
         Lexer testLex = new Lexer(testString1);
         String output = "";
         for (Token t : testLex.lex()){
@@ -154,6 +154,15 @@ public class UnitTests {
     }
 
     @Test
+    public void LEX_processStringLiteral() throws Exception{
+        Lexer  testLex = new Lexer("I am going to try to string literal \"Is it working???\" banana \"What about \\\"NOW?\\\" What if I just \"\"");
+        LinkedList<Token> output = testLex.lex();
+        Assert.assertEquals("STRINGLITERAL(Is it working???)", output.get(8).toString());
+        Assert.assertEquals("STRINGLITERAL(What about \"NOW?\")", output.get(9).toString());
+        Assert.assertEquals("", output.get(10).toString());
+    }
+
+    @Test
     public void T_toString() throws Exception {
         Token testToken = new Token(Token.Type.WORD, "TestAlphabeticWord", 1, 20);
         Assert.assertEquals("WORD(TestAlphabeticWord)", testToken.toString());
@@ -161,6 +170,7 @@ public class UnitTests {
         Assert.assertEquals("NUMBER(3.14159)", testToken.toString());
         testToken = new Token(Token.Type.SEPERATOR, null, 420, 69);
         Assert.assertEquals("SEPERATOR", testToken.toString());
-
     }
+
+
 }
