@@ -10,6 +10,7 @@ public class Lexer {
     private int position;
     private LinkedList<Token> tokenList = new LinkedList<Token>();
     private HashMap<String, Token.Type> keyWords = new HashMap<String, Token.Type> (20);
+    //private HashMap<String, Token.Type>
 
     public Lexer(String fileData){
         h = new StringHandler(fileData);
@@ -32,12 +33,24 @@ public class Lexer {
                 h.swallow(1);
                 position++;
             }
+            // Create a new number token if it is a number character or period.
+            else if (Character.isDigit(c) || c == '.'){
+                tokenList.add(processNumber());
+            }
+            // Create a new Word token if it starts with an alphabetic character
+            else if (Character.isAlphabetic(c)){
+                tokenList.add(processWord());
+            }
             // Generate a seperator token if its a newline character.
             else if (c == '\n'){
                 tokenList.add(new Token(Token.Type.SEPERATOR, null, lineNumber, position));
                 lineNumber++;
                 position = 1;
                 h.swallow(1);
+            }
+            // String literals
+            else if (c == '\"'){                
+                tokenList.add(processStringLiterals());
             }
             else if (c == ';'){
                 tokenList.add(new Token(Token.Type.SEPERATOR, null, lineNumber, position));
@@ -51,18 +64,6 @@ public class Lexer {
                     lineNumber++;
                     position = 1;
                 }
-            }
-            // String literals
-            else if (c == '\"'){                
-                tokenList.add(processStringLiterals());
-            }
-            // Create a new number token if it is a number character or period.
-            else if (Character.isDigit(c) || c == '.'){
-                tokenList.add(processNumber());
-            }
-            // Create a new Word token if it starts with an alphabetic character
-            else if (Character.isAlphabetic(c)){
-                tokenList.add(processWord());
             }
             else if (c == '`' /**/|| c == '*' /**/){
                 // TODO

@@ -1,7 +1,8 @@
 
 public class Token{
     public enum Type{WORD, NUMBER, SEPERATOR, WHILE, IF, DO, FOR, BREAK, CONTINUE, ELSE, RETURN, BEGIN, 
-        END, PRINT, PRINTF, NEXT, IN, DELETE, GETLINE, EXIT, NEXTFILE, FUNCTION, STRINGLITERAL}
+        END, PRINT, PRINTF, NEXT, IN, DELETE, GETLINE, EXIT, NEXTFILE, FUNCTION, STRINGLITERAL, REGEXLITERAL
+        }
     
     private String value;   // The actual string passed to the class
     private Type type;      // Stores the type of value
