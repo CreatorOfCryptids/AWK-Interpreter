@@ -33,18 +33,23 @@ public class Lexer {
                 position++;
             }
             // Generate a seperator token if its a newline character.
-            else if (c == '\n' || c == ';'){
+            else if (c == '\n'){
                 tokenList.add(new Token(Token.Type.SEPERATOR, null, lineNumber, position));
                 lineNumber++;
                 position = 1;
                 h.swallow(1);
             }
+            else if (c == ';'){
+                tokenList.add(new Token(Token.Type.SEPERATOR, null, lineNumber, position));
+                h.swallow(1);
+                position++;
+            }
             // If it is a comment (starting with '#') skip to next line.
             else if (c == '#'){
                 while(!h.isDone() && h.peek() != '\n'){
                     h.swallow(1);
-                    // TODO lineNumber++;
-                    // position = 0;
+                    lineNumber++;
+                    position = 1;
                 }
             }
             // String literals
@@ -59,9 +64,13 @@ public class Lexer {
             else if (Character.isAlphabetic(c)){
                 tokenList.add(processWord());
             }
+            else if (c == '`' /**/|| c == '*' /**/){
+                // TODO
+                h.swallow(1);
+            }
             // If we don't regognise the character, throw an exception.
             else{
-                throw new Exception("We caught a \'" + c + "\' at Line: " + lineNumber + " Position: " + h.getCurrentIndex());
+                throw new Exception("We caught a \'" + c + "\' at Line: " + lineNumber + " Position: " + position);
             }
         }
         return tokenList;
@@ -138,29 +147,34 @@ public class Lexer {
      * @throws Exception
      */
     private Token processStringLiterals() throws Exception{
-        h.swallow(1);
+        h.swallow(1);           // Swallow the '"'
         String stringLiteral = "";
         char c = h.peek();
         int stringStart = position;
         position++;
+        // Loop until the end of the file or the next '"'
         while (!h.isDone() && (c != '\"')){
             stringLiteral += h.getChar();
             c = h.peek();
             position++;
+            // If we encounter an excape thing, skip that and pretend it's not there.
             if (c == '\\' && !h.isDone()){
                 h.swallow(1);
                 stringLiteral += h.getChar();
                 position+=2;
                 c = h.peek();
             }
-
-            if (/*h.isDone() ||/**/ c == '\n'){
-                throw new Exception();
+            // If we reach the end of the line or the end of the file without a closing '"' we throw an exception
+            if (/**!h.isDone() ||/**/ c == '\n'){
+                throw new Exception("Expected a '\"' on line " + lineNumber);
             }
         }
-        h.swallow(2);
-        position+=2;
+        // Need to swallow the quotation mark so it doesn't make an incorrect string literal. 
+        if (!h.isDone())
+            h.swallow(1);
+        position++;
 
+        // Return the new token
         Token stringToken = new Token(Token.Type.STRINGLITERAL, stringLiteral, lineNumber, stringStart);
         return stringToken;
     }

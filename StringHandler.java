@@ -58,6 +58,7 @@ public class StringHandler {
     public char getChar(){
         char output = fileData.charAt(currentIndex);
         currentIndex++;
+        //log(output);
         return output;   
     }
 
@@ -71,6 +72,7 @@ public class StringHandler {
             currentIndex += i;
         else 
             throw new ArrayIndexOutOfBoundsException();
+        //log(fileData.substring(currentIndex-i, currentIndex));
     }
 
     /**
@@ -97,5 +99,13 @@ public class StringHandler {
     public int getCurrentIndex(){
         return currentIndex;
     }/**/
+
+    public void log(String log){
+        System.out.print(log);
+    }
+
+    public void log(char log){
+        System.out.print(log);
+    }
 }
 

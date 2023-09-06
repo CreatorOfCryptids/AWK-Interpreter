@@ -16,8 +16,8 @@ public class UnitTests {
     "WORD(AreY0uSur3)WORD(areyoureallysure)WORD(TOTALYPOSITIVE)SEPERATORNUMBER(3)NUMBER(14)NUMBER(159)NUMBER(265359)NUMBER(2.718281828459045)NUMBER(127.0)" + 
     "NUMBER(.0)NUMBER(.1)SEPERATORWORD(WordsThen)NUMBER(1039257.3)SEPERATORNUMBER(8792305)WORD(ThenWords)";
     String testString2 = 
-    "test for test while hello test do test break examin if whatabout continue tryan else butwhatif reurn andwecantforgetabout BEGIN waitand END" +
-    "butwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function" + 
+    "test for test while hello test do test break examin if whatabout continue tryan else butwhatif reurn andwecantforgetabout BEGIN waitand END\n" +
+    "butwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function\n" + 
     "\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldn'tforget the\"\" `*patern*`";
     String desiredOutput2 = "";
 
@@ -155,11 +155,11 @@ public class UnitTests {
 
     @Test
     public void LEX_processStringLiteral() throws Exception{
-        Lexer  testLex = new Lexer("I am going to try to string literal \"Is it working???\" banana \"What about \\\"NOW?\\\" What if I just \"\"");
+        Lexer  testLex = new Lexer("I am going to try to string literal \"Is it working???\" banana \"What about \\\"NOW?\\\"\" What if I just \"\"");
         LinkedList<Token> output = testLex.lex();
         Assert.assertEquals("STRINGLITERAL(Is it working???)", output.get(8).toString());
-        Assert.assertEquals("STRINGLITERAL(What about \"NOW?\")", output.get(9).toString());
-        Assert.assertEquals("", output.get(10).toString());
+        Assert.assertEquals("STRINGLITERAL(What about \"NOW?\")", output.get(10).toString());
+        Assert.assertEquals("STRINGLITERAL()", output.get(15).toString());
     }
 
     @Test
@@ -171,6 +171,4 @@ public class UnitTests {
         testToken = new Token(Token.Type.SEPERATOR, null, 420, 69);
         Assert.assertEquals("SEPERATOR", testToken.toString());
     }
-
-
 }
