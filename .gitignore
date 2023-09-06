@@ -1,5 +1,5 @@
 *
 !*.java
-!test1.txt
+!test[0-9].txt
 !*.md
 !.gitignore
