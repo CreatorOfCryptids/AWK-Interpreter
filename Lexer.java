@@ -1,4 +1,7 @@
+import java.util.HashMap;
 import java.util.LinkedList;
+
+//import Token.Type;
 
 public class Lexer {
 
@@ -6,13 +9,20 @@ public class Lexer {
     private int lineNumber;
     private int position;
     private LinkedList<Token> tokenList = new LinkedList<Token>();
+    private HashMap<String, Token.Type> keyWords = new HashMap<String, Token.Type> (20);
 
     public Lexer(String fileData){
         h = new StringHandler(fileData);
         lineNumber = 1; // The current line.
         position = 1;   // The current index inside the current line.
+        initalizeHashMap(keyWords);
     }
     
+    /**
+     * The lex() method.
+     * @return A linked list with all of the tokens generated from the file.
+     * @throws Exception
+     */
     public LinkedList<Token> lex() throws Exception{
         // Loop thru all the data from the file.
         while (!h.isDone()){
@@ -23,11 +33,23 @@ public class Lexer {
                 position++;
             }
             // Generate a seperator token if its a newline character.
-            else if (c == '\n'){
+            else if (c == '\n' || c == ';'){
                 tokenList.add(new Token(Token.Type.SEPERATOR, null, lineNumber, position));
                 lineNumber++;
                 position = 1;
                 h.swallow(1);
+            }
+            // If it is a comment (starting with '#') skip to next line.
+            else if (c == '#'){
+                while(!h.isDone() && h.peek() != '\n'){
+                    h.swallow(1);
+                    // TODO lineNumber++;
+                    // position = 0;
+                }
+            }
+            // String literals
+            else if (c == '\"'){
+
             }
             // Create a new number token if it is a number character or period.
             else if (Character.isDigit(c) || c == '.'){
@@ -44,6 +66,7 @@ public class Lexer {
         }
         return tokenList;
     }
+
     /**
      * The processWord() method.
      * @return A token generated from the collected word.
@@ -67,7 +90,12 @@ public class Lexer {
             }
             /**/
         }
-        // Make the token and return it.
+        // Check if it is a keyWord. If so, make it a key token instead.
+        if (keyWords.containsKey(word)){
+            Token keyWordToken = new Token(keyWords.get(word), lineNumber, wordStart);
+            return keyWordToken;
+        }
+        // Otherwize, make a word token and return it.
         Token wordToken = new Token(Token.Type.WORD, word, lineNumber, wordStart);
         return wordToken;
     }
@@ -102,5 +130,36 @@ public class Lexer {
         // Construct the token and return it.
         Token numberToken = new Token(Token.Type.NUMBER, number, lineNumber, numberStart);
         return numberToken;
+    }
+
+    
+    private Token processStringLiterals(){
+        
+    }
+
+    /**
+    * The intializeHashMap() method.
+    * @param HashMap The hashmap to be initalized with all the key-words.
+    */
+    private void initalizeHashMap(HashMap<String, Token.Type> HashMap){
+        HashMap.put("while", Token.Type.WHILE);
+        HashMap.put("if", Token.Type.IF);
+        HashMap.put("do", Token.Type.DO);
+        HashMap.put("for", Token.Type.FOR);
+        HashMap.put("break", Token.Type.BREAK);
+        HashMap.put("continue", Token.Type.CONTINUE);
+        HashMap.put("else", Token.Type.ELSE);
+        HashMap.put("return", Token.Type.RETURN);
+        HashMap.put("BEGIN", Token.Type.BEGIN);
+        HashMap.put("END", Token.Type.END);
+        HashMap.put("print", Token.Type.PRINT);
+        HashMap.put("printf", Token.Type.PRINTF);
+        HashMap.put("next", Token.Type.NEXT);
+        HashMap.put("in", Token.Type.IN);
+        HashMap.put("delete", Token.Type.DELETE);
+        HashMap.put("getline", Token.Type.GETLINE);
+        HashMap.put("EXIT", Token.Type.EXIT);
+        HashMap.put("nextfile", Token.Type.NEXTFILE);
+        HashMap.put("function", Token.Type.FUNCTION);
     }
 }

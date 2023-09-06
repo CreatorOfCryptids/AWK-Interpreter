@@ -4,38 +4,45 @@ import org.junit.Test;
 
 public class UnitTests {
 
-    String fileName = "text1.txt";
-    String testString = "TestAlphabeticWord Tes5tW0rdsW1thNum8ers testlowercase TESTUPPPERCASE\n" +
+    String fileName1 = "text1.txt";
+    String testString1 = 
+    "TestAlphabeticWord Tes5tW0rdsW1thNum8ers testlowercase TESTUPPPERCASE\n" +
     "WhatAboutA2ndLine AreY0uSur3 areyoureallysure TOTALYPOSITIVE\n" +
     "3 14 159 265359 2.718281828459045 127.0.0.1\n" +
     "WordsThen 1039257.3\n"+
     "8792305 ThenWords";
-    String fullDesiredOutput = "WORD(TestAlphabeticWord)WORD(Tes5tW0rdsW1thNum8ers)WORD(testlowercase)WORD(TESTUPPPERCASE)SEPERATORWORD(WhatAboutA2ndLine)" + 
+    String fullDesiredOutput1 = 
+    "WORD(TestAlphabeticWord)WORD(Tes5tW0rdsW1thNum8ers)WORD(testlowercase)WORD(TESTUPPPERCASE)SEPERATORWORD(WhatAboutA2ndLine)" + 
     "WORD(AreY0uSur3)WORD(areyoureallysure)WORD(TOTALYPOSITIVE)SEPERATORNUMBER(3)NUMBER(14)NUMBER(159)NUMBER(265359)NUMBER(2.718281828459045)NUMBER(127.0)" + 
     "NUMBER(.0)NUMBER(.1)SEPERATORWORD(WordsThen)NUMBER(1039257.3)SEPERATORNUMBER(8792305)WORD(ThenWords)";
+    String testString2 = 
+    "test for test while hello test do test break examin if whatabout continue tryan else butwhatif reurn andwecantforgetabout BEGIN waitand END" +
+    "butwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function" + 
+    "\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test";
+    String desiredOutput2 = "";
 
     @Test 
     public void SH_peek() throws Exception{
-        StringHandler testHandler = new StringHandler(testString);
+        StringHandler testHandler = new StringHandler(testString1);
 
         //loops thru each and every character in the thing to see if it works.
-        for (int i = 0; i<testString.length(); i++){
-            Assert.assertEquals(testString.charAt(i), testHandler.peek(i));
+        for (int i = 0; i<testString1.length(); i++){
+            Assert.assertEquals(testString1.charAt(i), testHandler.peek(i));
             Assert.assertEquals(0, testHandler.getCurrentIndex());
         }
 
         testHandler.swallow(19); // Iterates the finger
         Assert.assertEquals(19, testHandler.getCurrentIndex());
         // Checks if it works when the finger index is greater than 0.
-        for(int i=0; i<(testString.length()-19); i++)
-            Assert.assertEquals(testString.charAt(i+19), testHandler.peek(i));
+        for(int i=0; i<(testString1.length()-19); i++)
+            Assert.assertEquals(testString1.charAt(i+19), testHandler.peek(i));
         // Checks that the finger isn't moved.
         Assert.assertEquals(19, testHandler.getCurrentIndex());
     }
 
     @Test
     public void SH_peekString() throws Exception {
-        StringHandler testHandler = new StringHandler(testString);
+        StringHandler testHandler = new StringHandler(testString1);
 
         Assert.assertEquals("", testHandler.peekString(0));
         Assert.assertEquals("Test", testHandler.peekString(4));
@@ -49,21 +56,21 @@ public class UnitTests {
 
     @Test
     public void SH_getChar() throws Exception {
-        StringHandler testHandler = new StringHandler(testString);
+        StringHandler testHandler = new StringHandler(testString1);
 
 
         Assert.assertEquals(0, testHandler.getCurrentIndex());
         Assert.assertEquals('T', testHandler.getChar());
         Assert.assertEquals(1, testHandler.getCurrentIndex());
-        for (int i=1; i<testString.length(); i++){
-            Assert.assertEquals(testString.charAt(i), testHandler.getChar());
+        for (int i=1; i<testString1.length(); i++){
+            Assert.assertEquals(testString1.charAt(i), testHandler.getChar());
         }
 
     }
 
     @Test
     public void SH_swallow() throws Exception {
-        StringHandler testHandler = new StringHandler(testString);
+        StringHandler testHandler = new StringHandler(testString1);
 
         
         Assert.assertEquals(0, testHandler.getCurrentIndex());
@@ -77,22 +84,22 @@ public class UnitTests {
 
     @Test
     public void SH_isDone() throws Exception {
-        StringHandler testHandler = new StringHandler(testString);
+        StringHandler testHandler = new StringHandler(testString1);
 
         String output = "";
         while(!testHandler.isDone()){
             output += testHandler.getChar();
         }
-        Assert.assertEquals(testString, output);
+        Assert.assertEquals(testString1, output);
     }
 
     @Test
     public void SH_remainder() throws Exception {
-        StringHandler testHandler = new StringHandler(testString);
+        StringHandler testHandler = new StringHandler(testString1);
 
-        Assert.assertEquals(testString, testHandler.remainder());
+        Assert.assertEquals(testString1, testHandler.remainder());
         testHandler.swallow(99);
-        Assert.assertEquals(testString.substring(99), testHandler.remainder());
+        Assert.assertEquals(testString1.substring(99), testHandler.remainder());
         testHandler.swallow(96);
         Assert.assertEquals("8792305 ThenWords", testHandler.remainder());
     }
@@ -111,12 +118,12 @@ public class UnitTests {
 
     @Test
     public void LEX() throws Exception{
-        Lexer testLex = new Lexer(testString);
+        Lexer testLex = new Lexer(testString1);
         String output = "";
         for (Token t : testLex.lex()){
             output += t.toString();
         }
-        Assert.assertEquals(fullDesiredOutput, output);
+        Assert.assertEquals(fullDesiredOutput1, output);
     }
 
     @Test
