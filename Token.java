@@ -1,7 +1,7 @@
 
 public class Token{
     public enum Type{WORD, NUMBER, SEPERATOR, WHILE, IF, DO, FOR, BREAK, CONTINUE, ELSE, RETURN, BEGIN, 
-        END, PRINT, PRINTF, NEXT, IN, DELETE, GETLINE, EXIT, NEXTFILE, FUNCTION, STRINGLITERAL, REGEXLITERAL,
+        END, PRINT, PRINTF, NEXT, IN, DELETE, GETLINE, EXIT, NEXTFILE, FUNCTION, STRINGLITERAL, PATTERN,
         GREATEREQUALS, PLUSPLUS, MINUSMINUS, LESSEQUALS, EQUALSEQUALS, NOTEQUALS, EXPONENTEQUALS, MODEQUALS, 
         TIMESEQUALS, DIVIDEEQUALS, PLUSEQUALS, MINUSEQUALS, NOTMATCH, AND, APPEND, OR, LCURLY, RCURLY, 
         LSQUARE, RSQUARE, LPAREN, RPAREN, DOLLAR, MATCH, EQUALS, LESS, GREATER, NOT, PLUS, EXPONENT, MINUS, 
@@ -45,5 +45,11 @@ public class Token{
             return type.toString() + "(" + value + ")";
     }
 
-    //TODO: Add accessors.
+    public int getLineNumber(){
+        return lineNumber;
+    }
+
+    public int getIndex(){
+        return index;
+    }
 }

@@ -215,6 +215,19 @@ public class UnitTests {
     }
 
     @Test
+    public void LEX_processPattern() throws Exception{
+        Lexer testLex = new Lexer("`test` `124` `next to``eachother` `` banananana`patterns|with&symbols`");
+        LinkedList<Token> output = testLex.lex();
+
+        Assert.assertEquals(output.get(0).toString(), "PATTERN(test)");
+        Assert.assertEquals(output.get(1).toString(), "PATTERN(124)");
+        Assert.assertEquals(output.get(2).toString(), "PATTERN(next to)");
+        Assert.assertEquals(output.get(3).toString(), "PATTERN(eachother)");
+        Assert.assertEquals(output.get(4).toString(), "PATTERN()");
+        Assert.assertEquals(output.get(6).toString(), "PATTERN(patterns|with&symbols)");
+    }
+
+    @Test
     public void T_toString() throws Exception {
         Token testToken = new Token(Token.Type.WORD, "TestAlphabeticWord", 1, 20);
         Assert.assertEquals("WORD(TestAlphabeticWord)", testToken.toString());

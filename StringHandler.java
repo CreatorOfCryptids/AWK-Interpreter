@@ -91,6 +91,10 @@ public class StringHandler {
         return fileData.substring(currentIndex);
     }
 
+    /**
+     * The remaingin
+     * @return the amount of remaining character in the string
+     */
     public int remaining(){
         return fileData.length() - currentIndex;
     }

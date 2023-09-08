@@ -1,4 +1,7 @@
-test for ; test while hello test do test break examin if whatabout continue tryAn else butwhatif return andwecantforgetabout BEGIN waitand END
+test for test while hello test do test break examin if whatabout continue tryAn else butwhatif return andwecantforgetabout BEGIN waitand END
 butwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function
 "What about a string literal?" "does it recognize \"ESCAPESEPTION!?!?!\"" test andIShouldNotforget the "" `*patern*`
 I am going to try to string literal "Is it working???" banana ; fish "What about \"NOW?\"" What if I just "" 
+>= ++ -- <= == != ^= %= *= 3/=4 += -= !~ && >> whatAboutACurveBall ||
+{ } [ ] ( ) $ ~ = < > ! + ^ - ? :test * / % ; curveBall | ,
+`test` `124` `next to``eachother` `` banananana`patterns|with&symbols`
