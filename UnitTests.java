@@ -18,7 +18,7 @@ public class UnitTests {
     String testString2 = 
     "test for test while hello test do test break examin if whatabout continue tryan else butwhatif reurn andwecantforgetabout BEGIN waitand END\n" +
     "butwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function\n" + 
-    "\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldn'tforget the\"\" `*patern*`";
+    "\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldnotforget the\"\" `*patern*`";
     String desiredOutput2 = "";
 
     @Test 

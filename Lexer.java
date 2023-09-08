@@ -10,13 +10,14 @@ public class Lexer {
     private int position;
     private LinkedList<Token> tokenList = new LinkedList<Token>();
     private HashMap<String, Token.Type> keyWords = new HashMap<String, Token.Type> (20);
-    //private HashMap<String, Token.Type>
+    private HashMap<String, Token.Type> doubleSymbols = new HashMap<String, Token.Type> (16);
+    private HashMap<String, Token.Type> singleSymbol = new HashMap<String, Token.Type> (26);
 
     public Lexer(String fileData){
         h = new StringHandler(fileData);
         lineNumber = 1; // The current line.
         position = 1;   // The current index inside the current line.
-        initalizeHashMap(keyWords);
+        initalizeHashMaps(keyWords, doubleSymbols, singleSymbol);
     }
     
     /**
@@ -182,27 +183,69 @@ public class Lexer {
 
     /**
     * The intializeHashMap() method.
-    * @param HashMap The hashmap to be initalized with all the key-words.
+    * @param keyWords The hashmap to be initalized with all the key-words.
     */
-    private void initalizeHashMap(HashMap<String, Token.Type> HashMap){
-        HashMap.put("while", Token.Type.WHILE);
-        HashMap.put("if", Token.Type.IF);
-        HashMap.put("do", Token.Type.DO);
-        HashMap.put("for", Token.Type.FOR);
-        HashMap.put("break", Token.Type.BREAK);
-        HashMap.put("continue", Token.Type.CONTINUE);
-        HashMap.put("else", Token.Type.ELSE);
-        HashMap.put("return", Token.Type.RETURN);
-        HashMap.put("BEGIN", Token.Type.BEGIN);
-        HashMap.put("END", Token.Type.END);
-        HashMap.put("print", Token.Type.PRINT);
-        HashMap.put("printf", Token.Type.PRINTF);
-        HashMap.put("next", Token.Type.NEXT);
-        HashMap.put("in", Token.Type.IN);
-        HashMap.put("delete", Token.Type.DELETE);
-        HashMap.put("getline", Token.Type.GETLINE);
-        HashMap.put("EXIT", Token.Type.EXIT);
-        HashMap.put("nextfile", Token.Type.NEXTFILE);
-        HashMap.put("function", Token.Type.FUNCTION);
+    private void initalizeHashMaps(HashMap<String, Token.Type> keyWords, HashMap<String, Token.Type> doubleSymbol, HashMap<String, Token.Type> singleSymbol){
+        keyWords.put("while", Token.Type.WHILE);
+        keyWords.put("if", Token.Type.IF);
+        keyWords.put("do", Token.Type.DO);
+        keyWords.put("for", Token.Type.FOR);
+        keyWords.put("break", Token.Type.BREAK);
+        keyWords.put("continue", Token.Type.CONTINUE);
+        keyWords.put("else", Token.Type.ELSE);
+        keyWords.put("return", Token.Type.RETURN);
+        keyWords.put("BEGIN", Token.Type.BEGIN);
+        keyWords.put("END", Token.Type.END);
+        keyWords.put("print", Token.Type.PRINT);
+        keyWords.put("printf", Token.Type.PRINTF);
+        keyWords.put("next", Token.Type.NEXT);
+        keyWords.put("in", Token.Type.IN);
+        keyWords.put("delete", Token.Type.DELETE);
+        keyWords.put("getline", Token.Type.GETLINE);
+        keyWords.put("EXIT", Token.Type.EXIT);
+        keyWords.put("nextfile", Token.Type.NEXTFILE);
+        keyWords.put("function", Token.Type.FUNCTION);
+
+        doubleSymbol.put(">=", Token.Type.GREATEREQUALS);
+        doubleSymbol.put("++", Token.Type.PLUSPLUS);
+        doubleSymbol.put("--", Token.Type.MINUSMINUS);
+        doubleSymbol.put("<=", Token.Type.LESSEQUALS);
+        doubleSymbol.put("==", Token.Type.EQUALSEQUALS);
+        doubleSymbol.put("!=", Token.Type.NOTEQUALS);
+        doubleSymbol.put("^=", Token.Type.EXPONENTEQUALS);
+        doubleSymbol.put("%=", Token.Type.MODEQUALS);
+        doubleSymbol.put("*=", Token.Type.TIMESEQUALS);
+        doubleSymbol.put("/=", Token.Type.DIVIDEEQUALS);
+        doubleSymbol.put("+=", Token.Type.PLUSEQUALS);
+        doubleSymbol.put("-=", Token.Type.MINUSEQUALS);
+        doubleSymbol.put("!~", Token.Type.NOTMATCH);
+        doubleSymbol.put("&&", Token.Type.AND);
+        doubleSymbol.put(">>", Token.Type.APPEND);
+        doubleSymbol.put("||", Token.Type.OR);
+
+        singleSymbol.put("{", Token.Type.LCURLY);
+        singleSymbol.put("}", Token.Type.RCURLY);
+        singleSymbol.put("[", Token.Type.LSQUARE);
+        singleSymbol.put("]", Token.Type.RSQUARE);
+        singleSymbol.put("(", Token.Type.LPAREN);
+        singleSymbol.put(")", Token.Type.RPAREN);
+        singleSymbol.put("$", Token.Type.DOLLAR);
+        singleSymbol.put("~", Token.Type.MATCH);
+        singleSymbol.put("=", Token.Type.EQUALS);
+        singleSymbol.put("<", Token.Type.LESS);
+        singleSymbol.put(">", Token.Type.GREATER);
+        singleSymbol.put("!", Token.Type.NOT);
+        singleSymbol.put("+", Token.Type.PLUS);
+        singleSymbol.put("^", Token.Type.EXPONENT);
+        singleSymbol.put("-", Token.Type.MINUS);
+        singleSymbol.put("?", Token.Type.QUESTIONMARK);
+        singleSymbol.put(":", Token.Type.COLON);
+        singleSymbol.put("*", Token.Type.ASTRIC);
+        singleSymbol.put("/", Token.Type.SLASH);
+        singleSymbol.put("%", Token.Type.MOD);
+        singleSymbol.put(";", Token.Type.SEPERATOR);
+        singleSymbol.put("\n", Token.Type.SEPERATOR);
+        singleSymbol.put("|", Token.Type.BAR);
+        singleSymbol.put(",", Token.Type.COMMA);
     }
 }
