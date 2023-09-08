@@ -26,10 +26,13 @@ public class Token{
      * The TokenType constructor.
      */
     Token(Type token, String word, int lineNumber, int index){
+        //Token(token, lineNumber, index);
+        /**/
         this.type = token;
-        this.value = word;
         this.lineNumber = lineNumber;
         this.index = index;
+        /**/
+        this.value = word;
     }
 
     /**
@@ -41,4 +44,6 @@ public class Token{
         else
             return type.toString() + "(" + value + ")";
     }
+
+    //TODO: Add accessors.
 }

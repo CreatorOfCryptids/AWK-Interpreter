@@ -12,7 +12,7 @@ public class Lexer {
     private HashMap<String, Token.Type> keyWords = new HashMap<String, Token.Type> (20);
     private HashMap<String, Token.Type> doubleSymbols = new HashMap<String, Token.Type> (16);
     private HashMap<String, Token.Type> singleSymbol = new HashMap<String, Token.Type> (26);
-
+    
     public Lexer(String fileData){
         h = new StringHandler(fileData);
         lineNumber = 1; // The current line.
@@ -44,7 +44,7 @@ public class Lexer {
             }
             // Generate a seperator token if its a newline character.
             else if (c == '\n'){
-                tokenList.add(new Token(Token.Type.SEPERATOR, null, lineNumber, position));
+                tokenList.add(new Token(Token.Type.SEPERATOR, lineNumber, position));
                 lineNumber++;
                 position = 1;
                 h.swallow(1);
@@ -53,8 +53,8 @@ public class Lexer {
             else if (c == '\"'){                
                 tokenList.add(processStringLiterals());
             }
-            else if (c == ';'){
-                tokenList.add(new Token(Token.Type.SEPERATOR, null, lineNumber, position));
+            else if (c == '`'){
+                //TODO
                 h.swallow(1);
                 position++;
             }
@@ -66,9 +66,20 @@ public class Lexer {
                     position = 1;
                 }
             }
-            else if (c == '`' /**/|| c == '*' /**/){
-                // TODO
-                h.swallow(1);
+            // Check to see if it is part of a double char set
+            else if (h.remaining() >=2 && doubleSymbols.containsKey(h.peekString(2))){
+                tokenList.add(new Token(doubleSymbols.get(h.peekString(2)), lineNumber, position));
+                h.swallow(2);
+                position += 2;
+            }
+            // Check to see if it is part of a single char set
+            else if (singleSymbol.containsKey(h.peekString(1))){
+                tokenList.add(new Token(singleSymbol.get(h.peekString(1)), lineNumber, position));
+                // If it is a newline, iterate the line count number.
+                if (h.getChar() == '\n'){ // I used the getChar() method to move the handler along.
+                    lineNumber++;
+                    position = 0;
+                }
             }
             // If we don't regognise the character, throw an exception.
             else{

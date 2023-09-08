@@ -91,6 +91,10 @@ public class StringHandler {
         return fileData.substring(currentIndex);
     }
 
+    public int remaining(){
+        return fileData.length() - currentIndex;
+    }
+
     /**
      * Shhhhh! This is just for testing pourposes. 
      * The getCurrentIndex() method.

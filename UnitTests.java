@@ -163,6 +163,58 @@ public class UnitTests {
     }
 
     @Test
+    public void LEX_processDoubleCharacters() throws Exception{
+        Lexer testLex = new Lexer(">= ++ -- <= == != ^= %= *= 3/=4 += -= !~ && >> whatAboutACurveBall ||");
+        LinkedList<Token> output = testLex.lex();
+        Assert.assertEquals(output.get(0).toString(), "GREATEREQUALS");
+        Assert.assertEquals(output.get(1).toString(), "PLUSPLUS");
+        Assert.assertEquals(output.get(2).toString(), "MINUSMINUS");
+        Assert.assertEquals(output.get(3).toString(), "LESSEQUALS");
+        Assert.assertEquals(output.get(4).toString(), "EQUALSEQUALS");
+        Assert.assertEquals(output.get(5).toString(), "NOTEQUALS");
+        Assert.assertEquals(output.get(6).toString(), "EXPONENTEQUALS");
+        Assert.assertEquals(output.get(7).toString(), "MODEQUALS");
+        Assert.assertEquals(output.get(8).toString(), "TIMESEQUALS");
+        Assert.assertEquals(output.get(10).toString(), "DIVIDEEQUALS");
+        Assert.assertEquals(output.get(12).toString(), "PLUSEQUALS");
+        Assert.assertEquals(output.get(13).toString(), "MINUSEQUALS");
+        Assert.assertEquals(output.get(14).toString(), "NOTMATCH");
+        Assert.assertEquals(output.get(15).toString(), "AND");
+        Assert.assertEquals(output.get(16).toString(), "APPEND");
+        Assert.assertEquals(output.get(18).toString(), "OR");
+    }
+
+    @Test
+    public void LEX_processSingleChar() throws Exception{
+        Lexer testLex = new Lexer("{ } [ ] ( ) $ ~ = < > ! + ^ - ? :test * / % ; \n curveBall | ,");
+        LinkedList<Token> output = testLex.lex();
+        Assert.assertEquals(output.get(0).toString(), "LCURLY");
+        Assert.assertEquals(output.get(1).toString(), "RCURLY");
+        Assert.assertEquals(output.get(2).toString(), "LSQUARE");
+        Assert.assertEquals(output.get(3).toString(), "RSQUARE");
+        Assert.assertEquals(output.get(4).toString(), "LPAREN");
+        Assert.assertEquals(output.get(5).toString(), "RPAREN");
+        Assert.assertEquals(output.get(6).toString(), "DOLLAR");
+        Assert.assertEquals(output.get(7).toString(), "MATCH");
+        Assert.assertEquals(output.get(8).toString(), "EQUALS");
+        Assert.assertEquals(output.get(9).toString(), "LESS");
+        Assert.assertEquals(output.get(10).toString(), "GREATER");
+        Assert.assertEquals(output.get(11).toString(), "NOT");
+        Assert.assertEquals(output.get(12).toString(), "PLUS");
+        Assert.assertEquals(output.get(13).toString(), "EXPONENT");
+        Assert.assertEquals(output.get(14).toString(), "MINUS");
+        Assert.assertEquals(output.get(15).toString(), "QUESTIONMARK");
+        Assert.assertEquals(output.get(16).toString(), "COLON");
+        Assert.assertEquals(output.get(18).toString(), "ASTRIC");
+        Assert.assertEquals(output.get(19).toString(), "SLASH");
+        Assert.assertEquals(output.get(20).toString(), "MOD");
+        Assert.assertEquals(output.get(21).toString(), "SEPERATOR");
+        Assert.assertEquals(output.get(22).toString(), "SEPERATOR");
+        Assert.assertEquals(output.get(24).toString(), "BAR");
+        Assert.assertEquals(output.get(25).toString(), "COMMA");
+    }
+
+    @Test
     public void T_toString() throws Exception {
         Token testToken = new Token(Token.Type.WORD, "TestAlphabeticWord", 1, 20);
         Assert.assertEquals("WORD(TestAlphabeticWord)", testToken.toString());
