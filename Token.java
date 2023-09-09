@@ -52,4 +52,8 @@ public class Token{
     public int getIndex(){
         return index;
     }
+
+    public Type getType(){
+        return this.type;
+    }
 }
