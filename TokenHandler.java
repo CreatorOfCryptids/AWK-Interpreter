@@ -61,4 +61,15 @@ public class TokenHandler {
             return Optional.empty();
         }
     }
+
+    /**
+     * The acceptSeperators() method
+     * @return True if there is one or more seperators.
+     */
+    boolean acceptSeperators(){
+        boolean existsSeperators = false;
+        while (moreTokens() && matchAndRemove(Token.Type.SEPERATOR).isPresent())
+            existsSeperators = true;
+        return existsSeperators;
+    }
 }
