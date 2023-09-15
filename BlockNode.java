@@ -6,6 +6,16 @@ public class BlockNode extends Node{
     private LinkedList<StatementNode> statements;
     private Optional<Node> condition;  
     
+    public BlockNode(Node condition, LinkedList<StatementNode> statementNodes){
+        if (condition == null){
+            this.condition = Optional.empty();
+        }
+        else{
+            this.condition = Optional.of(condition);
+        }
+        statements = statementNodes;
+    }
+
     public Optional<Node> getCondition(){
         return condition;
     }
@@ -21,5 +31,4 @@ public class BlockNode extends Node{
         retVal += '}';
         return retVal;
     }
-    
 }

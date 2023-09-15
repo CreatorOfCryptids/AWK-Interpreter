@@ -13,11 +13,15 @@ public class FunctionDefinitionNode extends Node{
 
     public String toString(){
         String retVal = "function " + name + " (";
+
         for (String st : parameters)
             retVal += st;
+
         retVal += ") {\n";
+
         for (StatementNode s : statements)
             retVal += s.toString() + '\n';
+        
         return retVal + "}\n";
     }
 }

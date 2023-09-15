@@ -1,4 +1,5 @@
 import java.util.LinkedList;
+import java.util.Optional;
 
 public class ProgramNode extends Node{
     
@@ -26,11 +27,11 @@ public class ProgramNode extends Node{
         endBlockNodes.add(node);
     }
 
-    public void addOtherBlock(BlockNode node){
+    public void addOtherBlock(Optional<Node> condition, BlockNode node){
         otherBlockNodes.add(node);
     }
 
     public String toString() {
-        return beginBlockNodes.toString() + '\n' + otherBlockNodes.toString() + '\n' + endBlockNodes.toString() + '\n' + functionNodes.toString() + '\n';
+        return functionNodes.toString() + '\n' + beginBlockNodes.toString() + '\n' + otherBlockNodes.toString() + '\n' + endBlockNodes.toString() + '\n';
     }
 }
