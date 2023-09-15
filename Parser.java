@@ -18,8 +18,11 @@ public class Parser {
     public ProgramNode parse() throws Exception{
         // Loop calling two functions, parseFunction() and parseAction().
         while (h.moreTokens()){
+            h.acceptSeperators();
             if (parseFunction(pNode)){}
+        
             else if (parseAction(pNode)){}
+
             else
                 throw new Exception("Issue Parsing.");
             // If both are false, throw an exception
@@ -31,13 +34,15 @@ public class Parser {
     /**
      * The parseFunction() method.
      * @param node
-     * @return
+     * @return True if there is a function, False if not.
      */
     boolean parseFunction(ProgramNode node) throws Exception{
-        if (h.matchAndRemove(Token.Type.FUNCTION).isEmpty())
+        // See if the expression is a function. If its not a funcition return false.
+        if (h.matchAndRemove(Token.Type.FUNCTION).isEmpty()){
             return false;
-        
+        }
         else{
+            // Initialize variables to pass to the FunctionDefinitionNode constructor.
             String name; 
             LinkedList<String> parameters = new LinkedList<String>();
             LinkedList<StatementNode> statements = new LinkedList<StatementNode>();
@@ -50,25 +55,27 @@ public class Parser {
             else
                 throw new Exception("Expected a name for the function.");
 
+            // Take in the '(' and throw an exception if it is not there.
             if (h.matchAndRemove(Token.Type.LPAREN).isEmpty())
                 throw new Exception("Expected a '(' after the " + name + " function declaration.");
 
-            // Take in the parameters,
+            // Take in the parameters, until there is a ')'
             while (h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
                 parameters.add(h.matchAndRemove(Token.Type.STRINGLITERAL).get().getValue());
                 h.matchAndRemove(Token.Type.COMMA);
                 h.acceptSeperators();
             }
-            if (h.matchAndRemove(Token.Type.LCURLY).isEmpty())
+            // Take in the '{' or throw an exception.
+            if (h.matchAndRemove(Token.Type.LCURLY).isEmpty()){
                 throw new Exception("Expected a '{' after the " + name + "function declaration.");
-            
-            
+            }
+            // Take in the statments
             while (h.matchAndRemove(Token.Type.RCURLY).isEmpty()) {
                 Optional<StatementNode> statement = parseStatement();
                 if (statement.isPresent())
                     statements.add(statement.get());
             }
-
+            // Initalize the FunctionDefinionNode and add to the ProgramNode.
             pNode.add(new FunctionDefinitionNode(name, parameters, null));
             return true;
         }
@@ -77,35 +84,44 @@ public class Parser {
     /**
      * The parseFunction() method.
      * @param node
-     * @return
+     * @return True if the fucntion can add an action to the node, False if not.
      */
     boolean parseAction(ProgramNode node){
         //ToDo move the selection of which block to alocate to after we know what the condition looks like.
         if (h.matchAndRemove(Token.Type.BEGIN).isPresent()){
             node.addBeginBlock(parseBlock());
-            return true;
         }
         else if (h.matchAndRemove(Token.Type.END).isPresent()){
             node.addEndBlock(parseBlock());
-
-            return true;
         }
         else {
             parseOperation();
             parseBlock();
-            return true;
         }
+        return true;
     }
 
+    /**
+     * The parseBlock() method.
+     * @return BlockNode created from the token stream
+     */
     private BlockNode parseBlock(){
-        
+
         return null;
     }
     
+    /**
+     * The parseOperation() method.
+     * @return Operation that operates to T/F
+     */
     private Optional<Node> parseOperation(){
         return Optional.empty();
     }
 
+    /**
+     * The parseStatement() method.
+     * @return StatementNode made from the token stream.
+     */
     private Optional<StatementNode> parseStatement(){
         return Optional.empty();
     }

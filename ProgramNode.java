@@ -32,6 +32,25 @@ public class ProgramNode extends Node{
     }
 
     public String toString() {
-        return functionNodes.toString() + '\n' + beginBlockNodes.toString() + '\n' + otherBlockNodes.toString() + '\n' + endBlockNodes.toString() + '\n';
+        String retVal = "";
+
+        for(Node n : functionNodes){
+            retVal += n.toString() + '\n';
+        }
+        retVal += '\n';
+        for(Node n : beginBlockNodes){
+            retVal += n.toString() + '\n';
+        }
+        retVal += '\n';
+        for(Node n : otherBlockNodes){
+            retVal += n.toString() + '\n';
+        }
+        retVal += '\n';
+        for(Node n : endBlockNodes){
+            retVal += n.toString() + '\n';
+        }
+        retVal += '\n';
+
+        return retVal;
     }
 }

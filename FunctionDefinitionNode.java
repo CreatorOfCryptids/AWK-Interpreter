@@ -15,13 +15,18 @@ public class FunctionDefinitionNode extends Node{
         String retVal = "function " + name + " (";
 
         for (String st : parameters)
-            retVal += st;
+            retVal += st + ", ";
 
         retVal += ") {\n";
 
-        for (StatementNode s : statements)
-            retVal += s.toString() + '\n';
-        
+        //TODO remove the null functionality of the toString.
+        if (statements != null)
+            for (StatementNode s : statements)
+                retVal += s.toString() + '\n';
+        //*
+        else
+            retVal += "NULL STATEMENTS\n";/**/
+
         return retVal + "}\n";
     }
 }

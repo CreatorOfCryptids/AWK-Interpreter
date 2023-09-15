@@ -20,10 +20,17 @@ public class awk {
         // Lex.
         LinkedList<Token> list = lex.lex();
 
+        // Parse
+        Parser parser = new Parser(list);
+        ProgramNode program = parser.parse();
+
         //Print the tokens.
         for(Token t: list){
             System.out.print(t.toString() + " ");
         }
+
+        System.out.println("\n\n" + program.toString());
+
         System.out.println();
     }
 }

@@ -20,6 +20,17 @@ public class UnitTests {
     "butwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function\n" + 
     "\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldnotforget the\"\" `*patern*`";
     String desiredOutput2 = "";
+    String testParse = 
+            "BEGIN\t{FS = \",\"}\n" + 
+            "\t{\n" + 
+            "\t LineCount = 0;\n" + 
+            "\t for (i = 1; i <= NF; i = i + 1) {\n" + 
+            "\t\tLineCount = LineCount + $i\n" + 
+            "\t\t}\n" + 
+            "\tCountTotal = CountTotal + LineCount;\n" + 
+            "\tprint \"line \" NR \": \" LineCount;\n" + 
+            "\t}\n" + 
+            "END\t{print \"Grand Total: \" CountTotal}\n";
 
     @Test 
     public void SH_peek() throws Exception{
@@ -235,5 +246,47 @@ public class UnitTests {
         Assert.assertEquals("NUMBER(3.14159)", testToken.toString());
         testToken = new Token(Token.Type.SEPERATOR, null, 420, 69);
         Assert.assertEquals("SEPERATOR", testToken.toString());
+    }
+
+    @Test
+    public void PAR_parceFunction() throws Exception {
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void PAR_parceAction() throws Exception {
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void PAR_parce() throws Exception {
+        Lexer lex = new Lexer(testParse);
+        LinkedList<Token> tokens = lex.lex();
+        Parser testParse = new Parser(tokens);
+        ProgramNode testNode = testParse.parse();
+        Assert.assertEquals("", testNode.toString());
+    }
+
+    @Test
+    public void PNODE_toString() throws Exception {
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void PNODE_add() throws Exception {
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void FNODE_toString() throws Exception {
+        String expectedOutcome= "function Name (a, b, c, ) {\n" +
+                                "NULL STATEMENTS\n" +
+                                "}\n";
+        LinkedList<String> param = new LinkedList<String>();
+        param.add("a");
+        param.add("b");
+        param.add("c");
+        FunctionDefinitionNode fnode = new FunctionDefinitionNode("Name", param, null);
+        Assert.assertEquals(expectedOutcome, fnode.toString());
     }
 }
