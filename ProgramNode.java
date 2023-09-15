@@ -8,18 +8,26 @@ public class ProgramNode extends Node{
     private LinkedList<Node> functionNodes;
 
     public ProgramNode(){
-        // TODO
+        beginBlockNodes = new LinkedList<Node>();
+        endBlockNodes = new LinkedList<Node>();
+        otherBlockNodes = new LinkedList<Node>();
+        functionNodes = new LinkedList<Node>();
     }
 
     public void add(FunctionDefinitionNode node){
         functionNodes.add(node);
     }
 
-    public void add(BlockNode node){
-        if (node.condition() == Token.Type.BEGIN){
-            beginBlockNodes.add(node);
-        }
-        // TODO continue
+    public void addBeginBlock(BlockNode node){
+        beginBlockNodes.add(node);
+    }
+
+    public void addEndBlock(BlockNode node){
+        endBlockNodes.add(node);
+    }
+
+    public void addOtherBlock(BlockNode node){
+        otherBlockNodes.add(node);
     }
 
     public String toString() {
