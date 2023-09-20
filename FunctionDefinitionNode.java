@@ -14,8 +14,9 @@ public class FunctionDefinitionNode extends Node{
     public String toString(){
         String retVal = "function " + name + " (";
 
-        for (String st : parameters)
-            retVal += st + ", ";
+        if (parameters != null && !parameters.isEmpty())
+            for (String st : parameters)
+                retVal += st + ", ";
 
         retVal += ") {\n";
 

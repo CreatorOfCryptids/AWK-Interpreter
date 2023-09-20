@@ -1,4 +1,7 @@
 import org.junit.Assert;
+
+import static org.junit.Assert.assertFalse;
+
 import java.util.LinkedList;
 import org.junit.Test;
 
@@ -261,15 +264,36 @@ public class UnitTests {
     @Test
     public void PAR_parce() throws Exception {
         Lexer lex = new Lexer(testParse);
-        LinkedList<Token> tokens = lex.lex();
-        Parser testParse = new Parser(tokens);
+        Parser testParse = new Parser(lex.lex());
         ProgramNode testNode = testParse.parse();
         Assert.assertEquals("", testNode.toString());
     }
 
     @Test
+    public void PAR_acceptSeperators() throws Exception {
+        Lexer lexer = new Lexer("This is a test ;;;;;;;;;;;;; hi \n\n\n\n are ;;\n these words accepted?");
+        TokenHandler testTH = new TokenHandler(lexer.lex());
+        for (int i =0; i<4; i++){
+            Assert.assertFalse(testTH.acceptSeperators());
+            testTH.matchAndRemove(Token.Type.WORD);
+        }
+        Assert.assertTrue(testTH.acceptSeperators());
+        Assert.assertEquals("WORD(hi)", testTH.matchAndRemove(Token.Type.WORD).get().toString());
+        Assert.assertTrue(testTH.acceptSeperators());
+        Assert.assertEquals("WORD(are)", testTH.matchAndRemove(Token.Type.WORD).get().toString());
+        Assert.assertTrue(testTH.acceptSeperators());
+        Assert.assertEquals("WORD(these)", testTH.matchAndRemove(Token.Type.WORD).get().toString());
+        testTH.matchAndRemove(Token.Type.WORD);
+        testTH.matchAndRemove(Token.Type.WORD);
+        Assert.assertFalse(testTH.acceptSeperators());
+    }
+
+    @Test
     public void PNODE_toString() throws Exception {
-        Assert.assertTrue(false);
+        ProgramNode testNode = new ProgramNode();
+        Assert.assertEquals("\n\n\n\n", testNode.toString());
+        testNode.add(new FunctionDefinitionNode("banana", null, null));
+        Assert.assertEquals("function banana () {\nNULL STATEMENTS\n}\n\n\n\n\n\n", testNode.toString());
     }
 
     @Test

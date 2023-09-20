@@ -62,7 +62,7 @@ public class TokenHandler {
         }
     }
 
-    /**
+    /** Moved to TH for easier testing outside of Parser
      * The acceptSeperators() method
      * @return True if there is one or more seperators.
      */
@@ -71,5 +71,5 @@ public class TokenHandler {
         while (moreTokens() && matchAndRemove(Token.Type.SEPERATOR).isPresent())
             existsSeperators = true;
         return existsSeperators;
-    }
+    }/* */
 }

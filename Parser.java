@@ -18,7 +18,7 @@ public class Parser {
     public ProgramNode parse() throws Exception{
         // Loop calling two functions, parseFunction() and parseAction().
         while (h.moreTokens()){
-            h.acceptSeperators();
+            acceptSeperators();
             if (parseFunction(pNode)){}
         
             else if (parseAction(pNode)){}
@@ -29,6 +29,17 @@ public class Parser {
         }
         
         return pNode;
+    }
+
+    /**
+     * The acceptSeperators() method
+     * @return True if there is one or more seperators.
+     */
+    boolean acceptSeperators(){
+        boolean existsSeperators = false;
+        while (h.moreTokens() && h.matchAndRemove(Token.Type.SEPERATOR).isPresent())
+            existsSeperators = true;
+        return existsSeperators;
     }
 
     /**
@@ -47,7 +58,7 @@ public class Parser {
             LinkedList<String> parameters = new LinkedList<String>();
             LinkedList<StatementNode> statements = new LinkedList<StatementNode>();
 
-            h.acceptSeperators();
+            acceptSeperators();
 
             // Take in name, if its missing throw an exception.
             if (h.peek().get().getType() == Token.Type.STRINGLITERAL)
@@ -63,7 +74,7 @@ public class Parser {
             while (h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
                 parameters.add(h.matchAndRemove(Token.Type.STRINGLITERAL).get().getValue());
                 h.matchAndRemove(Token.Type.COMMA);
-                h.acceptSeperators();
+                acceptSeperators();
             }
             // Take in the '{' or throw an exception.
             if (h.matchAndRemove(Token.Type.LCURLY).isEmpty()){
@@ -106,7 +117,9 @@ public class Parser {
      * @return BlockNode created from the token stream
      */
     private BlockNode parseBlock(){
-
+        if (h.matchAndRemove(Token.Type.LCURLY).isEmpty())
+            return false;
+        // TODO Continue from here.
         return null;
     }
     
