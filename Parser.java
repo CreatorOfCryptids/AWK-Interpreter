@@ -20,14 +20,11 @@ public class Parser {
         while (h.moreTokens()){
             acceptSeperators();
             if (parseFunction(pNode)){}
-        
             else if (parseAction(pNode)){}
-
             else
                 throw new Exception("Issue Parsing.");
             // If both are false, throw an exception
         }
-        
         return pNode;
     }
 
@@ -35,7 +32,7 @@ public class Parser {
      * The acceptSeperators() method
      * @return True if there is one or more seperators.
      */
-    boolean acceptSeperators(){
+    private boolean acceptSeperators(){
         boolean existsSeperators = false;
         while (h.moreTokens() && h.matchAndRemove(Token.Type.SEPERATOR).isPresent())
             existsSeperators = true;
@@ -119,9 +116,7 @@ public class Parser {
     private BlockNode parseBlock() throws Exception{
         Optional<Node> condition = parseOperation();
         LinkedList<StatementNode> statements = new LinkedList<StatementNode>();
-        while (h.matchAndRemove(Token.Type.RCURLY).isEmpty()){
-            if (!h.moreTokens())
-                throw new Exception("Expected a '}' at the end of the file");
+        while (h.moreTokens() && h.matchAndRemove(Token.Type.RCURLY).isEmpty()){
             Optional<StatementNode> statement = parseStatement();
             if (statement.isPresent())
                 statements.add(parseStatement().get());
@@ -148,9 +143,9 @@ public class Parser {
     private Optional<StatementNode> parseStatement(){
         // Just to let it take in things, i know this kinda goes against the whole reason that we dont have a function to explicityly do this, but it allows testing.
         //TODO Don't keep this please, future me.
-        Optional<Token> input = h.peek();
-        if (input.isPresent() && input.get().getType() != Token.Type.RCURLY)
+        while (acceptSeperators() == false && h.peek().get().getType() != Token.Type.RCURLY){
             h.matchAndRemove(h.peek().get().getType());
+        }
         return Optional.empty();
     }
 }

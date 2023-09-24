@@ -1,10 +1,6 @@
 import org.junit.Assert;
-
-import static org.junit.Assert.assertFalse;
-
 import java.util.LinkedList;
 import java.util.Optional;
-
 import org.junit.Test;
 
 public class UnitTests {
@@ -31,11 +27,11 @@ public class UnitTests {
             "\t LineCount = 0;\n" + 
             "\t for (i = 1; i <= NF; i = i + 1) {\n" + 
             "\t\tLineCount = LineCount + $i\n" + 
-            "\t\t#}\n" + 
+            "\t\t}\n" + 
             "\tCountTotal = CountTotal + LineCount;\n" + 
             "\tprint \"line \" NR \": \" LineCount;\n" + 
             "\t}\n" + 
-            "END\t{print \"Grand Total: \" CountTotal}\n";
+            "END\t{print \"Grand Total: \" CountTotal;}\n";
     String testTH = "test for test while hello test do test break examin if whatabout continue tryAn else butwhatif return andwecantforgetabout BEGIN waitand END\nbutwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function\n\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldNotforget the \"\" `*patern*`\nI am going to try to string literal \"Is it working???\" banana ; fish \"What about \\\"NOW?\\\"\" What if I just \"\" \n>= ++ -- <= == != ^= %= *= 3/=4 += -= !~ && >> whatAboutACurveBall ||\n{ } [ ] ( ) $ ~ = < > ! + ^ - ? :test * / % ; curveBall | ,\n`test` `124` `next to``eachother` `` banananana`patterns|with&symbols`";
 
     @Test 
@@ -324,8 +320,9 @@ public class UnitTests {
     public void PAR_parce() throws Exception {
         Lexer lex = new Lexer(testParse);
         Parser testParse = new Parser(lex.lex());
+        System.out.println(testParse);
         ProgramNode testNode = testParse.parse();
-        Assert.assertEquals("", testNode.toString());
+        Assert.assertEquals("BEGIN { NULL STATEMENT\n}\n{ NULL STATEMENT\n}\n{ NULL STATEMENT\n}\n{ NULL STATEMENT\n}\n", testNode.toString());
     }
 
     @Test
