@@ -23,14 +23,14 @@ public class Parser {
             else if (parseAction(pNode)){}
             else
                 throw new Exception("Issue Parsing.");
-            // If both are false, throw an exception
+            // If both return false, throw an exception
         }
         return pNode;
     }
 
     /**
      * The acceptSeperators() method
-     * @return True if there is one or more seperators.
+     * @return True if there is one or more seperators, false if else.
      */
     private boolean acceptSeperators(){
         boolean existsSeperators = false;
@@ -53,7 +53,7 @@ public class Parser {
             // Initialize variables to pass to the FunctionDefinitionNode constructor.
             String name; 
             LinkedList<String> parameters = new LinkedList<String>();
-            LinkedList<StatementNode> statements = new LinkedList<StatementNode>();
+            LinkedList<StatementNode> statementList;
 
             acceptSeperators();
 
@@ -79,13 +79,9 @@ public class Parser {
                 throw new Exception("Expected a '{' after the " + name + " function declaration.");
             }
             // Take in the statments
-            while (h.matchAndRemove(Token.Type.RCURLY).isEmpty()) {
-                Optional<StatementNode> statement = parseStatement();
-                if (statement.isPresent())
-                    statements.add(statement.get());
-            }
+            statementList = parseStatements();
             // Initalize the FunctionDefinionNode and add to the ProgramNode.
-            pNode.add(new FunctionDefinitionNode(name, parameters, null));
+            pNode.add(new FunctionDefinitionNode(name, parameters, statementList));
             return true;
         }
     }
@@ -96,7 +92,7 @@ public class Parser {
      * @return True if the fucntion can add an action to the node, False if not.
      */
     boolean parseAction(ProgramNode node)throws Exception{
-        //ToDo move the selection of which block to alocate to after we know what the condition looks like.
+        // Check for BEGIN and END
         if (h.matchAndRemove(Token.Type.BEGIN).isPresent()){
             node.addBeginBlock(parseBlock());
         }
@@ -114,15 +110,10 @@ public class Parser {
      * @return BlockNode created from the token stream
      */
     private BlockNode parseBlock() throws Exception{
+        // Take in the operation. If there was a Begin or END statement, this will just skip to the statements.
         Optional<Node> condition = parseOperation();
-        LinkedList<StatementNode> statements = new LinkedList<StatementNode>();
-        while (h.moreTokens() && h.matchAndRemove(Token.Type.RCURLY).isEmpty()){
-            Optional<StatementNode> statement = parseStatement();
-            if (statement.isPresent())
-                statements.add(parseStatement().get());
-            //acceptSeperators();
-        }
-        return new BlockNode(condition, statements);
+        LinkedList<StatementNode> statementList = parseStatements();
+        return new BlockNode(condition, statementList);
     }
     
     /**
@@ -130,10 +121,30 @@ public class Parser {
      * @return Operation that operates to T/F
      */
     private Optional<Node> parseOperation(){
+        // Filler in place of something that will come later.
         while(h.moreTokens() && h.matchAndRemove(Token.Type.LCURLY).isEmpty()){
             h.matchAndRemove(h.peek().get().getType());
         }
         return Optional.empty();
+    }
+
+    /**
+     * The parseStatements() method.
+     * @return A LinkedList of Optional<StatementNode>.
+     */
+    private LinkedList<StatementNode> parseStatements() throws Exception{
+        LinkedList<StatementNode> statementList = new LinkedList<StatementNode> ();
+        // Loop until there's a '}'
+        while (h.matchAndRemove(Token.Type.RCURLY).isEmpty()) {
+            // Make sure there's still more tokens
+            if (!h.moreTokens())
+                throw new Exception("Expected a closing '}'");
+            // Parse the next statement and add to the list.
+            Optional<StatementNode> statement = parseStatement();
+            if (statement.isPresent())
+                statementList.add(statement.get());
+        }
+        return statementList;
     }
 
     /**

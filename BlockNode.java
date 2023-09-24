@@ -22,9 +22,11 @@ public class BlockNode extends Node{
 
     public String toString() {
         String retVal = "";
+        // Add the condition
         if (condition.isPresent())
             retVal += condition.get().toString();
         retVal += "{ ";
+        // Print the statements (if there are any).
         if (statements == null || statements.size() == 0)
             retVal += "NULL STATEMENT\n";
         else

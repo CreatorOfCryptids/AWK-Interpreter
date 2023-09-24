@@ -32,16 +32,19 @@ public class ProgramNode extends Node{
 
     public String toString() {
         String retVal = "";
-
+        // Add the toStrings of the funciton nodes...
         for(Node n : functionNodes){
             retVal += n.toString() + '\n';
         }
+        // the begin blocks...
         for(Node n : beginBlockNodes){
             retVal += "BEGIN " + n.toString() + '\n';
         }
+        // the other blocks...
         for(Node n : otherBlockNodes){
             retVal += n.toString() + '\n';
         }
+        // and the end blocks.
         for(Node n : endBlockNodes){
             retVal += "END " + n.toString() + '\n';
         }

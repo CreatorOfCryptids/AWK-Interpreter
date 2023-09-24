@@ -41,6 +41,7 @@ public class TokenHandler {
      *         False if the list does not have any more tokens.
      */
     boolean moreTokens(){
+        // See if the Linked List has entries.
         if (tokens.size() > 0)
             return true;
         else 
@@ -62,7 +63,7 @@ public class TokenHandler {
         }
     }
 
-    /** Moved to TH for easier testing outside of Parser
+    /** Moved to TH for easier testing outside of Parser. Ignore otherwize.
      * The acceptSeperators() method
      * @return True if there is one or more seperators.
      */
