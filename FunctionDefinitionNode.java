@@ -18,7 +18,7 @@ public class FunctionDefinitionNode extends Node{
             for (String st : parameters)
                 retVal += st + ", ";
 
-        retVal += ") {\n";
+        retVal += ") { ";
 
         //TODO remove the null functionality of the toString.
         if (statements != null)
@@ -28,6 +28,6 @@ public class FunctionDefinitionNode extends Node{
         else
             retVal += "NULL STATEMENTS\n";/**/
 
-        return retVal + "}\n";
+        return retVal + "}";
     }
 }

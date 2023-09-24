@@ -27,7 +27,7 @@ public class ProgramNode extends Node{
         endBlockNodes.add(node);
     }
 
-    public void addOtherBlock(Optional<Node> condition, BlockNode node){
+    public void addOtherBlock(BlockNode node){
         otherBlockNodes.add(node);
     }
 
@@ -37,20 +37,15 @@ public class ProgramNode extends Node{
         for(Node n : functionNodes){
             retVal += n.toString() + '\n';
         }
-        retVal += '\n';
         for(Node n : beginBlockNodes){
-            retVal += n.toString() + '\n';
+            retVal += "BEGIN " + n.toString() + '\n';
         }
-        retVal += '\n';
         for(Node n : otherBlockNodes){
             retVal += n.toString() + '\n';
         }
-        retVal += '\n';
         for(Node n : endBlockNodes){
-            retVal += n.toString() + '\n';
+            retVal += "END " + n.toString() + '\n';
         }
-        retVal += '\n';
-
         return retVal;
     }
 }

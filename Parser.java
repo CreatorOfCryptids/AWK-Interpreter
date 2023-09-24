@@ -61,8 +61,8 @@ public class Parser {
             acceptSeperators();
 
             // Take in name, if its missing throw an exception.
-            if (h.peek().get().getType() == Token.Type.STRINGLITERAL)
-                name = h.matchAndRemove(Token.Type.STRINGLITERAL).get().getValue();
+            if (h.peek().get().getType() == Token.Type.WORD)
+                name = h.matchAndRemove(Token.Type.WORD).get().getValue();
             else
                 throw new Exception("Expected a name for the function.");
 
@@ -72,13 +72,14 @@ public class Parser {
 
             // Take in the parameters, until there is a ')'
             while (h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
-                parameters.add(h.matchAndRemove(Token.Type.STRINGLITERAL).get().getValue());
+                parameters.add(h.matchAndRemove(Token.Type.WORD).get().getValue());
                 h.matchAndRemove(Token.Type.COMMA);
                 acceptSeperators();
             }
+            acceptSeperators();
             // Take in the '{' or throw an exception.
             if (h.matchAndRemove(Token.Type.LCURLY).isEmpty()){
-                throw new Exception("Expected a '{' after the " + name + "function declaration.");
+                throw new Exception("Expected a '{' after the " + name + " function declaration.");
             }
             // Take in the statments
             while (h.matchAndRemove(Token.Type.RCURLY).isEmpty()) {
@@ -97,7 +98,7 @@ public class Parser {
      * @param node
      * @return True if the fucntion can add an action to the node, False if not.
      */
-    boolean parseAction(ProgramNode node){
+    boolean parseAction(ProgramNode node)throws Exception{
         //ToDo move the selection of which block to alocate to after we know what the condition looks like.
         if (h.matchAndRemove(Token.Type.BEGIN).isPresent()){
             node.addBeginBlock(parseBlock());
@@ -106,8 +107,7 @@ public class Parser {
             node.addEndBlock(parseBlock());
         }
         else {
-            parseOperation();
-            parseBlock();
+            node.addOtherBlock(parseBlock());
         }
         return true;
     }
@@ -116,11 +116,18 @@ public class Parser {
      * The parseBlock() method.
      * @return BlockNode created from the token stream
      */
-    private BlockNode parseBlock(){
-        if (h.matchAndRemove(Token.Type.LCURLY).isEmpty())
-            return false;
-        // TODO Continue from here.
-        return null;
+    private BlockNode parseBlock() throws Exception{
+        Optional<Node> condition = parseOperation();
+        LinkedList<StatementNode> statements = new LinkedList<StatementNode>();
+        while (h.matchAndRemove(Token.Type.RCURLY).isEmpty()){
+            if (!h.moreTokens())
+                throw new Exception("Expected a '}' at the end of the file");
+            Optional<StatementNode> statement = parseStatement();
+            if (statement.isPresent())
+                statements.add(parseStatement().get());
+            //acceptSeperators();
+        }
+        return new BlockNode(condition, statements);
     }
     
     /**
@@ -128,6 +135,9 @@ public class Parser {
      * @return Operation that operates to T/F
      */
     private Optional<Node> parseOperation(){
+        while(h.moreTokens() && h.matchAndRemove(Token.Type.LCURLY).isEmpty()){
+            h.matchAndRemove(h.peek().get().getType());
+        }
         return Optional.empty();
     }
 
@@ -136,6 +146,11 @@ public class Parser {
      * @return StatementNode made from the token stream.
      */
     private Optional<StatementNode> parseStatement(){
+        // Just to let it take in things, i know this kinda goes against the whole reason that we dont have a function to explicityly do this, but it allows testing.
+        //TODO Don't keep this please, future me.
+        Optional<Token> input = h.peek();
+        if (input.isPresent() && input.get().getType() != Token.Type.RCURLY)
+            h.matchAndRemove(h.peek().get().getType());
         return Optional.empty();
     }
 }

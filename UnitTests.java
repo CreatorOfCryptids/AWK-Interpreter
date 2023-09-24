@@ -3,6 +3,8 @@ import org.junit.Assert;
 import static org.junit.Assert.assertFalse;
 
 import java.util.LinkedList;
+import java.util.Optional;
+
 import org.junit.Test;
 
 public class UnitTests {
@@ -29,11 +31,12 @@ public class UnitTests {
             "\t LineCount = 0;\n" + 
             "\t for (i = 1; i <= NF; i = i + 1) {\n" + 
             "\t\tLineCount = LineCount + $i\n" + 
-            "\t\t}\n" + 
+            "\t\t#}\n" + 
             "\tCountTotal = CountTotal + LineCount;\n" + 
             "\tprint \"line \" NR \": \" LineCount;\n" + 
             "\t}\n" + 
             "END\t{print \"Grand Total: \" CountTotal}\n";
+    String testTH = "test for test while hello test do test break examin if whatabout continue tryAn else butwhatif return andwecantforgetabout BEGIN waitand END\nbutwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function\n\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldNotforget the \"\" `*patern*`\nI am going to try to string literal \"Is it working???\" banana ; fish \"What about \\\"NOW?\\\"\" What if I just \"\" \n>= ++ -- <= == != ^= %= *= 3/=4 += -= !~ && >> whatAboutACurveBall ||\n{ } [ ] ( ) $ ~ = < > ! + ^ - ? :test * / % ; curveBall | ,\n`test` `124` `next to``eachother` `` banananana`patterns|with&symbols`";
 
     @Test 
     public void SH_peek() throws Exception{
@@ -252,13 +255,69 @@ public class UnitTests {
     }
 
     @Test
+    public void TH_matchAndRemove() throws Exception {
+        Lexer lex = new Lexer(testTH);
+        TokenHandler testTH = new TokenHandler(lex.lex());
+
+        while(testTH.moreTokens()){
+            Assert.assertEquals(testTH.peek(), testTH.matchAndRemove(testTH.peek().get().getType()));
+        }
+    }
+
+    @Test
+    public void TH_moreTokens() throws Exception {
+        Lexer lex = new Lexer("if *= number 12");
+        TokenHandler testTH = new TokenHandler(lex.lex());
+
+        Assert.assertTrue(testTH.moreTokens());
+        testTH.matchAndRemove(Token.Type.IF);
+        Assert.assertTrue(testTH.moreTokens());
+        testTH.matchAndRemove(Token.Type.TIMESEQUALS);
+        Assert.assertTrue(testTH.moreTokens());
+        testTH.matchAndRemove(Token.Type.WORD);
+        Assert.assertTrue(testTH.moreTokens());
+        testTH.matchAndRemove(Token.Type.NUMBER);
+        Assert.assertFalse(testTH.moreTokens());
+    }
+
+    @Test
+    public void TH_peek() throws Exception {
+        Lexer lex = new Lexer("if for while banananana 24 \"no\"");
+        TokenHandler testTH = new TokenHandler(lex.lex());
+
+        Assert.assertEquals("IF", testTH.peek().get().toString());
+        Assert.assertEquals("FOR", testTH.peek(1).get().toString());
+        Assert.assertEquals("WHILE", testTH.peek(2).get().toString());
+        Assert.assertEquals("WORD(banananana)", testTH.peek(3).get().toString());
+        Assert.assertEquals("NUMBER(24)", testTH.peek(4).get().toString());
+        Assert.assertEquals("STRINGLITERAL(no)", testTH.peek(5).get().toString());
+    }
+
+    @Test
     public void PAR_parceFunction() throws Exception {
-        Assert.assertTrue(false);
+        String input = "function tester (a, c, \n" + //
+                " d) \n" + //
+                " { banana fish\n" + //
+                " if }\n" + //
+                " function testy (no, yes, maybe) {true false}";
+        
+        String output = "function tester (a, c, d, ) { NULL STATEMENTS\n" + 
+                        "}\n" + 
+                        "function testy (no, yes, maybe, ) { NULL STATEMENTS\n" + 
+                        "}\n";
+        Lexer lex = new Lexer(input);
+        Parser parse = new Parser(lex.lex());
+        ProgramNode pNode = parse.parse();
+        Assert.assertEquals(output, pNode.toString());
     }
 
     @Test
     public void PAR_parceAction() throws Exception {
-        Assert.assertTrue(false);
+        String input = "BEGIN {}";
+        Lexer lex = new Lexer(input);
+        Parser parse = new Parser(lex.lex());
+        ProgramNode pNode = parse.parse();
+        Assert.assertEquals("BEGIN { NULL STATEMENT\n}\n", pNode.toString());
     }
 
     @Test
@@ -291,26 +350,42 @@ public class UnitTests {
     @Test
     public void PNODE_toString() throws Exception {
         ProgramNode testNode = new ProgramNode();
-        Assert.assertEquals("\n\n\n\n", testNode.toString());
+        Assert.assertEquals("", testNode.toString());
         testNode.add(new FunctionDefinitionNode("banana", null, null));
-        Assert.assertEquals("function banana () {\nNULL STATEMENTS\n}\n\n\n\n\n\n", testNode.toString());
+        Assert.assertEquals("function banana () { NULL STATEMENTS\n}\n", testNode.toString());
     }
 
     @Test
     public void PNODE_add() throws Exception {
-        Assert.assertTrue(false);
+        ProgramNode test = new ProgramNode();
+        Assert.assertEquals("", test.toString());
+        FunctionDefinitionNode func = new FunctionDefinitionNode("funky", null, null);
+        test.add(func);
+        Assert.assertEquals("function funky () { NULL STATEMENTS\n}\n", test.toString());
+        BlockNode begin = new BlockNode(Optional.empty(), null);
+        test.addBeginBlock(begin);
+        test.addEndBlock(begin);
+        test.toString();
+        Assert.assertEquals("function funky () { NULL STATEMENTS\n}\nBEGIN { NULL STATEMENT\n}\nEND { NULL STATEMENT\n}\n", test.toString());
+
     }
 
     @Test
     public void FNODE_toString() throws Exception {
-        String expectedOutcome= "function Name (a, b, c, ) {\n" +
-                                "NULL STATEMENTS\n" +
-                                "}\n";
+        String expectedOutcome= "function Name (a, b, c, ) { NULL STATEMENTS\n" +
+                                "}";
         LinkedList<String> param = new LinkedList<String>();
         param.add("a");
         param.add("b");
         param.add("c");
         FunctionDefinitionNode fnode = new FunctionDefinitionNode("Name", param, null);
         Assert.assertEquals(expectedOutcome, fnode.toString());
+    }
+
+    @Test
+    public void BNODE_toString() throws Exception {
+        LinkedList<StatementNode> list = new LinkedList<StatementNode>();
+        BlockNode test = new BlockNode(Optional.empty(), list);
+        Assert.assertEquals("{ NULL STATEMENT\n}", test.toString());
     }
 }
