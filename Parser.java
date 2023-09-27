@@ -159,4 +159,34 @@ public class Parser {
         }
         return Optional.empty();
     }
+
+    Optional<Node> parseBottomLevel(){
+        // TODO
+        return Optional.empty();
+    }
+
+    Optional<Node> ParseLValue() throws Exception{
+        Optional<Token> next = h.peek();
+        if (next.isPresent()){
+            if(h.matchAndRemove(Token.Type.DOLLAR).isPresent()){
+                OperationNode retVal = new OperationNode(parseBottomLevel().get(), OperationNode.Operation.DOLLAR);
+                return Optional.of(retVal);
+            }
+            else if (next.get().getType() == Token.Type.WORD){
+                String name = h.matchAndRemove(Token.Type.WORD).get().getValue();
+                if(h.matchAndRemove(Token.Type.LSQUARE).isPresent()){
+                    Optional<Node> index = parseOperation();
+                    if (h.matchAndRemove(Token.Type.RSQUARE).isEmpty())
+                        throw new Exception("Expected a ']' near " + name + ".");
+                    return Optional.of(new VariableReferenceNode(name, index.get()));
+                }
+                else
+                    return Optional.of(new VariableReferenceNode(name));
+            }
+            else 
+                return Optional.empty();   
+        }
+        else
+            throw new Exception("Expected a token");
+    }
 }

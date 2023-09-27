@@ -15,7 +15,7 @@ public class TokenHandler {
     /**
      * The peek() method.
      * @param i 
-     * @return The i'th token in the list.
+     * @return Optional with the i'th token in the list.
      */
     Optional<Token> peek(int i){
         if (tokens.size() > i)
@@ -26,7 +26,7 @@ public class TokenHandler {
 
     /**
      * The peek() method.
-     * @return The top token in the list.
+     * @return Optional with the top token in the list.
      */
     Optional<Token> peek(){
         if (tokens.size() > 0)
@@ -51,8 +51,8 @@ public class TokenHandler {
     /**
      * The matchAndRemove() method.
      * @param type A type of token to compare to the top token in the list.
-     * @return The top token if the types match. 
-     *         Empty token if else.
+     * @return Optional with the top token if the types match. 
+     *         Empty Optional if else.
      */
     Optional<Token> matchAndRemove(Token.Type type){
         if (tokens.size() > 0 && tokens.get(0).getType() == type){
