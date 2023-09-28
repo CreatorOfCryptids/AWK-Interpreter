@@ -115,7 +115,11 @@ public class Parser {
      */
     private BlockNode parseBlock() throws Exception{
         // Take in the operation. If there was a Begin or END statement, this will just skip to the statements.
-        Optional<Node> condition = parseOperation();
+        Optional<Node> condition;
+        if (h.matchAndRemove(Token.Type.LCURLY).isEmpty())
+            condition = parseOperation();
+        else 
+            condition = Optional.empty();
         LinkedList<StatementNode> statementList = parseStatements();
         return new BlockNode(condition, statementList);
     }
@@ -172,18 +176,23 @@ public class Parser {
      * @throws Exception
      */
     private Optional<Node> parseBottomLevel() throws Exception{
-        // Since StringLiterals and Numbers are both stored in the same type of node, the same code works for both. \
-        // Also, since we need to make sure they're the right type before we consume them, we use peek() instead of \
+        // Since we need to make sure they're the right type before we consume them, we use peek() instead of /
         // matchAndRemove() for STRINGLITERALs, NUMERs and PATTERNs.
-        if (h.peek().get().getType() == Token.Type.STRINGLITERAL || 
-                h.peek().get().getType() == Token.Type.NUMBER) {
+        if (h.peek().get().getType() == Token.Type.STRINGLITERAL) {
             ConstantNode temp = new ConstantNode(h.matchAndRemove(Token.Type.STRINGLITERAL).get());
+            return Optional.of(temp);
+        }
+        else if (h.peek().get().getType() == Token.Type.NUMBER){
+            ConstantNode temp = new ConstantNode(h.matchAndRemove(Token.Type.NUMBER).get());
             return Optional.of(temp);
         }
         else if (h.peek().get().getType() == Token.Type.PATTERN){
-            ConstantNode temp = new ConstantNode(h.matchAndRemove(Token.Type.STRINGLITERAL).get());
+            //throw new Exception("It was doing pattern, suck it ");
+            PatternNode temp = new PatternNode(h.matchAndRemove(Token.Type.PATTERN).get());
             return Optional.of(temp);
         }
+        // We can use match and remove for the rest.
+        // The nested functions are a bit different in that we are calling parse operation (kinda) recursivly
         else if (h.matchAndRemove(Token.Type.LPAREN).isPresent()){
             Optional<Node> temp = parseOperation();
 
@@ -233,12 +242,12 @@ public class Parser {
             // if its not a dollar, check the next token without eating it.
             Optional<Token> next = h.peek();
             if (next.get().getType() == Token.Type.WORD){
-
+                // Get the next word and sotore as the name
                 String name = h.matchAndRemove(Token.Type.WORD).get().getValue();
-
+                // Check for array entry and parse with parseOperation().
                 if(h.matchAndRemove(Token.Type.LSQUARE).isPresent()){
                     Optional<Node> index = parseOperation();
-
+                    // If there's no closing bracket, thow a fit.
                     if (h.matchAndRemove(Token.Type.RSQUARE).isEmpty())
                         throw new Exception("Expected a ']' near " + name + " after " + h.getErrorPosition() + ".");
                     

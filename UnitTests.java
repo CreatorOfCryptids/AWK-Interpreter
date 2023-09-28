@@ -297,9 +297,6 @@ public class UnitTests {
 
     @Test
     public void PAR_parce() throws Exception {
-        /**
-         * 
-         */
         Lexer lex = new Lexer(testParse);
         Parser testParse = new Parser(lex.lex());
         System.out.println(testParse);
@@ -330,6 +327,14 @@ public class UnitTests {
     @Test
     public void PAR_parseOperation() throws Exception {
         //TODO
+        Lexer lex = new Lexer("++a ++$b (++d) -5 `[abc]` e[++b] $7");
+        Parser parse = new Parser(lex.lex());
+        Assert.assertEquals("++a", parse.parseOperation().get().toString());
+        Assert.assertEquals("++$b", parse.parseOperation().get().toString());
+        Assert.assertEquals("++d", parse.parseOperation().get().toString());
+        Assert.assertEquals("-5", parse.parseOperation().get().toString());
+        Assert.assertEquals("`[abc]`", parse.parseOperation().get().toString());
+        Assert.assertEquals("e[++b]", parse.parseOperation().get().toString());
     }
 
     @Test
@@ -377,9 +382,9 @@ public class UnitTests {
     @Test
     public void OPNODE_toString() throws Exception {
         OperationNode test = new OperationNode(new VariableReferenceNode("leftVariable"), OperationNode.Operation.PREDEC);
-        Assert.assertEquals("leftVariable PREDEC", test.toString());
+        Assert.assertEquals("--leftVariable", test.toString());
         test = new OperationNode(new VariableReferenceNode("leftVariable"), new VariableReferenceNode("5"), OperationNode.Operation.DIVIDE);
-        Assert.assertEquals("leftVariable DIVIDE 5", test.toString());
+        Assert.assertEquals("leftVariable/5", test.toString());
     }
 
     @Test

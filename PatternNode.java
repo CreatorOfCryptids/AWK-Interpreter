@@ -11,6 +11,6 @@ public class PatternNode extends Node {
     }
 
     public String toString(){
-        return '`' + value + '`';
+        return "`" + value + "`";
     }
 }
