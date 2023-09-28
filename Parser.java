@@ -6,6 +6,10 @@ public class Parser {
     TokenHandler h;
     ProgramNode pNode;
 
+    /**
+     * The Parser constructor.
+     * @param tokens A LinkedList of Token to be parsed.
+     */
     Parser(LinkedList<Token> tokens){
         h = new TokenHandler(tokens);
         pNode = new ProgramNode();
@@ -22,7 +26,7 @@ public class Parser {
             if (parseFunction(pNode)){}
             else if (parseAction(pNode)){}
             else
-                throw new Exception("Issue Parsing.");
+                throw new Exception("Issue parsing after " + h.getErrorPosition());
             // If both return false, throw an exception
         }
         return pNode;
@@ -65,7 +69,7 @@ public class Parser {
 
             // Take in the '(' and throw an exception if it is not there.
             if (h.matchAndRemove(Token.Type.LPAREN).isEmpty())
-                throw new Exception("Expected a '(' after the " + name + " function declaration.");
+                throw new Exception("Expected a '(' after the " + name + " function declaration at " + h.getErrorPosition());
 
             // Take in the parameters, until there is a ')'
             while (h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
@@ -76,7 +80,7 @@ public class Parser {
             acceptSeperators();
             // Take in the '{' or throw an exception.
             if (h.matchAndRemove(Token.Type.LCURLY).isEmpty()){
-                throw new Exception("Expected a '{' after the " + name + " function declaration.");
+                throw new Exception("Expected a '{' after the " + name + " function declaration at " + h.getErrorPosition());
             }
             // Take in the statments
             statementList = parseStatements();
@@ -119,13 +123,13 @@ public class Parser {
     /**
      * The parseOperation() method.
      * @return Operation that operates to T/F
-     */
-    private Optional<Node> parseOperation(){
-        // Filler in place of something that will come later.
+     */// TODO Swtich this back to private after testing.
+    public Optional<Node> parseOperation() throws Exception{
+        /*
         while(h.moreTokens() && h.matchAndRemove(Token.Type.LCURLY).isEmpty()){
             h.matchAndRemove(h.peek().get().getType());
-        }
-        return Optional.empty();
+        }/**/
+        return parseBottomLevel();
     }
 
     /**
@@ -138,7 +142,7 @@ public class Parser {
         while (h.matchAndRemove(Token.Type.RCURLY).isEmpty()) {
             // Make sure there's still more tokens
             if (!h.moreTokens())
-                throw new Exception("Expected a closing '}'");
+                throw new Exception("Expected a closing '}' after " + h.getErrorPosition());
             // Parse the next statement and add to the list.
             Optional<StatementNode> statement = parseStatement();
             if (statement.isPresent())
@@ -152,7 +156,8 @@ public class Parser {
      * @return StatementNode made from the token stream.
      */
     private Optional<StatementNode> parseStatement(){
-        // Just to let it take in things, i know this kinda goes against the whole reason that we dont have a function to explicityly do this, but it allows testing.
+        // Just to let it take in things, i know this kinda goes against the whole reason that we dont have a function to explicityly \
+        // do this, but it allows testing.
         //TODO Don't keep this please, future me.
         while (acceptSeperators() == false && h.peek().get().getType() != Token.Type.RCURLY){
             h.matchAndRemove(h.peek().get().getType());
@@ -160,33 +165,95 @@ public class Parser {
         return Optional.empty();
     }
 
-    Optional<Node> parseBottomLevel(){
-        // TODO
-        return Optional.empty();
-    }
+    /**
+     * The parseBottomLevel() method.
+     * @return A ConstantNode containing a detected string or number; a PatternNode containting a detected pattern;
+     *  or an OperationNode contatining a detected operation or urinary operator
+     * @throws Exception
+     */
+    private Optional<Node> parseBottomLevel() throws Exception{
+        // Since StringLiterals and Numbers are both stored in the same type of node, the same code works for both. \
+        // Also, since we need to make sure they're the right type before we consume them, we use peek() instead of \
+        // matchAndRemove() for STRINGLITERALs, NUMERs and PATTERNs.
+        if (h.peek().get().getType() == Token.Type.STRINGLITERAL || 
+                h.peek().get().getType() == Token.Type.NUMBER) {
+            ConstantNode temp = new ConstantNode(h.matchAndRemove(Token.Type.STRINGLITERAL).get());
+            return Optional.of(temp);
+        }
+        else if (h.peek().get().getType() == Token.Type.PATTERN){
+            ConstantNode temp = new ConstantNode(h.matchAndRemove(Token.Type.STRINGLITERAL).get());
+            return Optional.of(temp);
+        }
+        else if (h.matchAndRemove(Token.Type.LPAREN).isPresent()){
+            Optional<Node> temp = parseOperation();
 
-    Optional<Node> ParseLValue() throws Exception{
-        Optional<Token> next = h.peek();
-        if (next.isPresent()){
-            if(h.matchAndRemove(Token.Type.DOLLAR).isPresent()){
-                OperationNode retVal = new OperationNode(parseBottomLevel().get(), OperationNode.Operation.DOLLAR);
-                return Optional.of(retVal);
-            }
-            else if (next.get().getType() == Token.Type.WORD){
-                String name = h.matchAndRemove(Token.Type.WORD).get().getValue();
-                if(h.matchAndRemove(Token.Type.LSQUARE).isPresent()){
-                    Optional<Node> index = parseOperation();
-                    if (h.matchAndRemove(Token.Type.RSQUARE).isEmpty())
-                        throw new Exception("Expected a ']' near " + name + ".");
-                    return Optional.of(new VariableReferenceNode(name, index.get()));
-                }
-                else
-                    return Optional.of(new VariableReferenceNode(name));
-            }
-            else 
-                return Optional.empty();   
+            if (h.matchAndRemove(Token.Type.RPAREN).isEmpty())
+                throw new Exception("Expected a ')' at " + h.getErrorPosition());
+            // Don't need to put this one in an Optional because parseOperation already does that for us.
+            return temp;
+        }
+        else if (h.matchAndRemove(Token.Type.NOT).isPresent()){
+            OperationNode temp = new OperationNode(parseOperation().get(), OperationNode.Operation.NOT);
+            return Optional.of(temp);
+        }
+        else if (h.matchAndRemove(Token.Type.MINUS).isPresent()){
+            OperationNode temp = new OperationNode(parseOperation().get(), OperationNode.Operation.UNARYNEG);
+            return Optional.of(temp);
+        }
+        else if (h.matchAndRemove(Token.Type.PLUS).isPresent()){
+            OperationNode temp = new OperationNode(parseOperation().get(), OperationNode.Operation.UNARYPOS);
+            return Optional.of(temp);
+        }
+        else if (h.matchAndRemove(Token.Type.PLUSPLUS).isPresent()){
+            OperationNode temp = new OperationNode(parseOperation().get(), OperationNode.Operation.PREINC);
+            return Optional.of(temp);
+        }
+        else if (h.matchAndRemove(Token.Type.MINUSMINUS).isPresent()){
+            OperationNode temp = new OperationNode(parseOperation().get(), OperationNode.Operation.PREDEC);
+            return Optional.of(temp);
         }
         else
-            throw new Exception("Expected a token");
+            // If it's none of the above, then it must be a variable.
+            return parseLValue();
+    }
+
+    /**
+     * The parseLValue() method.
+     * @return A VariableReferenceNode containing a valid variable, array variable, or the outcome of a $ operator.
+     * @throws Exception
+     */
+    private Optional<Node> parseLValue() throws Exception{
+        // Checks if there are more tokens.
+        if (h.moreTokens()){
+            // If it is a dollar, pass it to parseBottomLevel()
+            if(h.matchAndRemove(Token.Type.DOLLAR).isPresent()){
+                OperationNode temp = new OperationNode(parseBottomLevel().get(), OperationNode.Operation.DOLLAR);
+                return Optional.of(temp);
+            }
+            // if its not a dollar, check the next token without eating it.
+            Optional<Token> next = h.peek();
+            if (next.get().getType() == Token.Type.WORD){
+
+                String name = h.matchAndRemove(Token.Type.WORD).get().getValue();
+
+                if(h.matchAndRemove(Token.Type.LSQUARE).isPresent()){
+                    Optional<Node> index = parseOperation();
+
+                    if (h.matchAndRemove(Token.Type.RSQUARE).isEmpty())
+                        throw new Exception("Expected a ']' near " + name + " after " + h.getErrorPosition() + ".");
+                    
+                    VariableReferenceNode temp = new VariableReferenceNode(name, index.get());
+                    return Optional.of(temp);
+                }
+                else{
+                    VariableReferenceNode temp = new VariableReferenceNode(name);
+                    return Optional.of(temp);
+                }
+            }
+            else 
+                throw new Exception("Expected a variable after " + h.getErrorPosition());
+        }
+        else
+            throw new Exception("Expected a token after " + h.getErrorPosition());
     }
 }

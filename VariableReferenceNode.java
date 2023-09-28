@@ -16,9 +16,9 @@ public class VariableReferenceNode extends Node{
     }
 
     public String toString() {
-        // TODO
-        String retVal = "";
+        String retVal = name;
+        if(indexExpression.isPresent())
+            retVal += "[" + indexExpression.get().toString() + "]";
         return retVal;
-    }
-    
+    }   
 }

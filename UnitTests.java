@@ -108,18 +108,6 @@ public class UnitTests {
         Assert.assertEquals("8792305 ThenWords", testHandler.remainder());
     }
 
-    /*
-    @Test
-    public void StringHandler() throws Exception {
-        StringHandler test = new StringHandler(
-            "TestAlphabeticWord Test_Words_With_Underscores Tes5tW0rdsW1thNum8ers testLowercase TEST_UPPPERCASE\n" +
-            "WhatAboutA2ndLine Does_That_Still_Work AreY0uSur3 are_you_really_sure TOTALY_POSITIVE\n" + 
-            "3 14 159 265359 2.718281828459045 127.0.0.1 \n" + 
-            "WordsThen 1039257.3\n" + 
-            "8792305 ThenWords");
-        Assert.assertTrue(false);
-    }/* */
-
     @Test
     public void LEX1() throws Exception{
         Lexer testLex = new Lexer(testString1);
@@ -319,6 +307,7 @@ public class UnitTests {
         Assert.assertEquals("function add_three (number, ) { NULL STATEMENTS\n}\nBEGIN { NULL STATEMENT\n}\n{ NULL STATEMENT\n}\nEND { NULL STATEMENT\n}\n", testNode.toString());
     }
 
+    /* Test for accept Seperators
     @Test
     public void PAR_acceptSeperators() throws Exception {
         Lexer lexer = new Lexer("This is a test ;;;;;;;;;;;;; hi \n\n\n\n are ;;\n these words accepted?");
@@ -336,6 +325,11 @@ public class UnitTests {
         testTH.matchAndRemove(Token.Type.WORD);
         testTH.matchAndRemove(Token.Type.WORD);
         Assert.assertFalse(testTH.acceptSeperators());
+    }*/
+
+    @Test
+    public void PAR_parseOperation() throws Exception {
+        //TODO
     }
 
     @Test
@@ -378,5 +372,21 @@ public class UnitTests {
         LinkedList<StatementNode> list = new LinkedList<StatementNode>();
         BlockNode test = new BlockNode(Optional.empty(), list);
         Assert.assertEquals("{ NULL STATEMENT\n}", test.toString());
+    }
+
+    @Test
+    public void OPNODE_toString() throws Exception {
+        OperationNode test = new OperationNode(new VariableReferenceNode("leftVariable"), OperationNode.Operation.PREDEC);
+        Assert.assertEquals("leftVariable PREDEC", test.toString());
+        test = new OperationNode(new VariableReferenceNode("leftVariable"), new VariableReferenceNode("5"), OperationNode.Operation.DIVIDE);
+        Assert.assertEquals("leftVariable DIVIDE 5", test.toString());
+    }
+
+    @Test
+    public void VRN_toString() throws Exception {
+        VariableReferenceNode test = new VariableReferenceNode("variable");
+        Assert.assertEquals("variable", test.toString());
+        test = new VariableReferenceNode("array", new VariableReferenceNode("index"));
+        Assert.assertEquals("array[index]", test.toString());
     }
 }

@@ -3,6 +3,8 @@ import java.util.Optional;
 
 public class TokenHandler {
     private LinkedList<Token> tokens;
+    private int lineNumber = 1;
+    private int index = 0;
 
     /**
      * The TokenHandler() constructor.
@@ -56,6 +58,9 @@ public class TokenHandler {
      */
     Optional<Token> matchAndRemove(Token.Type type){
         if (tokens.size() > 0 && tokens.get(0).getType() == type){
+            // move lineNumber and index along for better 
+            lineNumber = tokens.get(0).getLineNumber();
+            index = tokens.get(0).getIndex();
             return Optional.of(tokens.pop());
         }
         else{
@@ -63,10 +68,20 @@ public class TokenHandler {
         }
     }
 
-    /** Moved to TH for easier testing outside of Parser. Ignore otherwize.
+    /**
+     * The getLastLineNumber() function.
+     * This is a function of my own making to allow for easier debuging for future users of this compiler :)
+     * @return A string containing the line and index of the last processed token.
+     */
+    String getErrorPosition(){
+        String retval = "Line: " + lineNumber + " Index: " + index;
+        return retval;
+    }
+
+    /** Moved acceptSeperators() to TH for easier testing outside of Parser. Ignore otherwize.
      * The acceptSeperators() method
      * @return True if there is one or more seperators.
-     */
+     *
     boolean acceptSeperators(){
         boolean existsSeperators = false;
         while (moreTokens() && matchAndRemove(Token.Type.SEPERATOR).isPresent())
