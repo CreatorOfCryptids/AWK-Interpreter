@@ -127,8 +127,8 @@ public class Parser {
     /**
      * The parseOperation() method.
      * @return Operation that operates to T/F
-     */// TODO Swtich this back to private after testing.
-    public Optional<Node> parseOperation() throws Exception{
+     */
+    private Optional<Node> parseOperation() throws Exception{
         /*
         while(h.moreTokens() && h.matchAndRemove(Token.Type.LCURLY).isEmpty()){
             h.matchAndRemove(h.peek().get().getType());

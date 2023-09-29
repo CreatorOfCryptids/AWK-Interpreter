@@ -324,6 +324,7 @@ public class UnitTests {
         Assert.assertFalse(testTH.acceptSeperators());
     }*/
 
+    /* Test for parseOperation(). Needs to be public to work. Already been tested tho :)
     @Test
     public void PAR_parseOperation() throws Exception {
         //TODO
@@ -335,7 +336,7 @@ public class UnitTests {
         Assert.assertEquals("-5", parse.parseOperation().get().toString());
         Assert.assertEquals("`[abc]`", parse.parseOperation().get().toString());
         Assert.assertEquals("e[++b]", parse.parseOperation().get().toString());
-    }
+    }/**/
 
     @Test
     public void PNODE_toString() throws Exception {
