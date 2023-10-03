@@ -327,7 +327,6 @@ public class UnitTests {
     /* Test for parseOperation(). Needs to be public to work. Already been tested tho :)
     @Test
     public void PAR_parseOperation() throws Exception {
-        //TODO
         Lexer lex = new Lexer("++a ++$b (++d) -5 `[abc]` e[++b] $7");
         Parser parse = new Parser(lex.lex());
         Assert.assertEquals("++a", parse.parseOperation().get().toString());

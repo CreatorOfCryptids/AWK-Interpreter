@@ -133,7 +133,22 @@ public class Parser {
         while(h.moreTokens() && h.matchAndRemove(Token.Type.LCURLY).isEmpty()){
             h.matchAndRemove(h.peek().get().getType());
         }/**/
-        return parseBottomLevel();
+        Optional<Node> left = parseBottomLevel();
+        if (left.isEmpty())
+            throw new Exception("The left node cannot be null");
+        if (h.matchAndRemove(Token.Type.PLUSPLUS).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.POSTINC);
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.MINUSMINUS).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.POSTDEC);
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.);
+            return Optional.of(retval);
+        }
+        return Optional.empty();    // TODO
     }
 
     /**
