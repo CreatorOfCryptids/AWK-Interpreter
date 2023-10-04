@@ -128,7 +128,7 @@ public class Parser {
      * The parseOperation() method.
      * @return Operation that operates to T/F
      */
-    private Optional<Node> parseOperation() throws Exception{
+    public Optional<Node> parseOperation() throws Exception{
         /*
         while(h.moreTokens() && h.matchAndRemove(Token.Type.LCURLY).isEmpty()){
             h.matchAndRemove(h.peek().get().getType());
@@ -144,11 +144,84 @@ public class Parser {
             OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.POSTDEC);
             return Optional.of(retval);
         }
-        else if (h.matchAndRemove(Token.Type.).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.);
+        else if (h.matchAndRemove(Token.Type.ASTRIC).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.MULTIPLY, parseOperation().get());
             return Optional.of(retval);
         }
-        return Optional.empty();    // TODO
+        else if (h.matchAndRemove(Token.Type.SLASH).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.DIVIDE, parseOperation().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.MOD).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.MODULO, parseOperation().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.PLUS).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.ADD, parseOperation().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.MINUS).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.SUBTRACT, parseOperation().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.LESS).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.LT, parseBottomLevel().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.LESSEQUALS).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.LE, parseBottomLevel().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.EQUALSEQUALS).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.EQ, parseBottomLevel().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.NOTEQUALS).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.NE, parseBottomLevel().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.GREATER).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.GT, parseBottomLevel().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.GREATEREQUALS).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.GE, parseBottomLevel().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.MATCH).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.MATCH, parseBottomLevel().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.NOTMATCH).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.NOTMATCH, parseBottomLevel().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.AND).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.AND, parseOperation().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.OR).isPresent()){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.OR, parseOperation().get());
+            return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.QUESTIONMARK).isPresent()){
+            var trueCase = parseOperation().get();
+            if(h.matchAndRemove(Token.Type.COLON).isEmpty())
+                throw new Exception("Expected a ':' after " + h.getErrorPosition());
+            var retval = new TernaryNode(left.get(), trueCase, parseOperation().get());
+            return Optional.of(retval);
+        }
+        else if (h.moreTokens() && (h.peek().get().getType() == Token.Type.WORD || h.peek().get().getType() == Token.Type.STRINGLITERAL)) {
+            Node right = parseBottomLevel().get();
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.CONCATENATION, right);
+            return Optional.of(retval);
+        }
+        //else if (acceptSeperators() == true){
+        return left;
+        /*}
+        else
+            throw new Exception("");
+        /**/
     }
 
     /**

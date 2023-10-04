@@ -9,7 +9,7 @@ public class OperationNode extends Node{
     private Optional<Node> right;
     private Operation operation;
     private static String[] opToString = new String[] {"$", "++", "--", "+", "-", "!", "==", "!=", "<", "<=", ">", ">=", "&&", "||", 
-                                "~", "!~", "++", "--", "in", "^", "+", "-", "*", "/", "%", ""};
+                                "~", "!~", "++", "--", "in", "^", "+", "-", "*", "/", "%", " cat "};
                                 // This is just me being extra, basically it stores how the enum would look printed to make a prettier toString().
 
     /**
@@ -18,7 +18,7 @@ public class OperationNode extends Node{
      * @param right The right node of the operation.
      * @param operation The operation
      */
-    public OperationNode(Node left, Node right, Operation operation){
+    public OperationNode(Node left, Operation operation, Node right){
         this.left = left;
         this.right = Optional.of(right);
         this.operation = operation;
