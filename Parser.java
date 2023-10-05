@@ -333,12 +333,17 @@ public class Parser {
                 // Get the next word and sotore as the name
                 String name = h.matchAndRemove(Token.Type.WORD).get().getValue();
                 // Check for array entry and parse with parseOperation().
-                if(h.matchAndRemove(Token.Type.LSQUARE).isPresent()){
+                if (h.matchAndRemove(Token.Type.LSQUARE).isPresent()) {
                     Optional<Node> index = parseOperation();
-                    // If there's no closing bracket, thow a fit.
-                    if (h.matchAndRemove(Token.Type.RSQUARE).isEmpty())
-                        throw new Exception("Expected a ']' near " + name + " after " + h.getErrorPosition() + ".");
-                    
+                    if (h.moreTokens()){
+                        while (h.matchAndRemove(Token.Type.COMMA).isPresent()){
+                            // TODO
+                        }
+                        if (h.matchAndRemove(Token.Type.RSQUARE).isEmpty())
+                                throw new Exception("Expected a ']' near " + name + " after " + h.getErrorPosition() + ".");
+                    }
+                    else 
+                        throw new Exception("Expected array input after " + h.getErrorPosition());
                     VariableReferenceNode temp = new VariableReferenceNode(name, index.get());
                     return Optional.of(temp);
                 }

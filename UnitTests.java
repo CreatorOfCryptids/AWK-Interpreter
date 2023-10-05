@@ -460,6 +460,11 @@ public class UnitTests {
         test = par.parseOperation().get();
         Assert.assertEquals("a[b]", test.toString());
 
+        lex = new Lexer("a[b][3]");
+        par = new Parser(lex.lex());
+        test = par.parseOperation().get();
+        Assert.assertEquals("a[b][3]", test.toString());
+
         lex = new Lexer("a && b");
         par = new Parser(lex.lex());
         test = par.parseOperation().get();
