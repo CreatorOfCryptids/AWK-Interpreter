@@ -332,12 +332,14 @@ public class Parser {
             if (next.get().getType() == Token.Type.WORD){
                 // Get the next word and sotore as the name
                 String name = h.matchAndRemove(Token.Type.WORD).get().getValue();
-                // Check for array entry and parse with parseOperation().
+                // Check for array entry(s) and parse with parseOperation().
                 if (h.matchAndRemove(Token.Type.LSQUARE).isPresent()) {
                     Optional<Node> index = parseOperation();
+                    // Make sure there's still tokens ahead.
                     if (h.moreTokens()){
+                        // While theres still arguments for the array selection
                         while (h.matchAndRemove(Token.Type.COMMA).isPresent()){
-                            // TODO
+                            // TODO How do we store the multidimentions of the multidimenitonal arrays? With an array?!?!?
                         }
                         if (h.matchAndRemove(Token.Type.RSQUARE).isEmpty())
                                 throw new Exception("Expected a ']' near " + name + " after " + h.getErrorPosition() + ".");

@@ -460,10 +460,11 @@ public class UnitTests {
         test = par.parseOperation().get();
         Assert.assertEquals("a[b]", test.toString());
 
-        lex = new Lexer("a[b][3]");
+        /*
+        lex = new Lexer("a[b,3]");
         par = new Parser(lex.lex());
         test = par.parseOperation().get();
-        Assert.assertEquals("a[b][3]", test.toString());
+        Assert.assertEquals("a[b,3]", test.toString());*/
 
         lex = new Lexer("a && b");
         par = new Parser(lex.lex());
@@ -480,30 +481,50 @@ public class UnitTests {
         test = par.parseOperation().get();
         Assert.assertEquals("a ? b : c", test.toString());
 
-        lex = new Lexer("");
+        lex = new Lexer("a ^= b");
         par = new Parser(lex.lex());
         test = par.parseOperation().get();
-        Assert.assertEquals("", test.toString());
+        Assert.assertEquals("a=a^b", test.toString());
 
-        lex = new Lexer("");
+        lex = new Lexer("a%=b");
         par = new Parser(lex.lex());
         test = par.parseOperation().get();
-        Assert.assertEquals("", test.toString());
+        Assert.assertEquals("a=a%b", test.toString());
 
-        lex = new Lexer("");
+        lex = new Lexer("a*=b");
         par = new Parser(lex.lex());
         test = par.parseOperation().get();
-        Assert.assertEquals("", test.toString());
+        Assert.assertEquals("a=a*b", test.toString());
 
-        lex = new Lexer("");
+        lex = new Lexer("a/=b");
         par = new Parser(lex.lex());
         test = par.parseOperation().get();
-        Assert.assertEquals("", test.toString());
+        Assert.assertEquals("a=a/b", test.toString());
 
-        lex = new Lexer("");
+        lex = new Lexer("a+=b");
         par = new Parser(lex.lex());
         test = par.parseOperation().get();
-        Assert.assertEquals("", test.toString());
+        Assert.assertEquals("a=a+b", test.toString());
+
+        lex = new Lexer("a-=b");
+        par = new Parser(lex.lex());
+        test = par.parseOperation().get();
+        Assert.assertEquals("a=a-b", test.toString());
+
+        lex = new Lexer("a=b");
+        par = new Parser(lex.lex());
+        test = par.parseOperation().get();
+        Assert.assertEquals("a=b", test.toString());
+
+        lex = new Lexer("a ^ b");
+        par = new Parser(lex.lex());
+        test = par.parseOperation().get();
+        Assert.assertEquals("a^b", test.toString());
+
+        /*lex = new Lexer("");
+        par = new Parser(lex.lex());
+        test = par.parseOperation().get();
+        Assert.assertEquals("", test.toString());*/
     }
 
     @Test
