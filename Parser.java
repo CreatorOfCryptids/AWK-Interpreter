@@ -204,6 +204,7 @@ public class Parser {
             OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.OR, parseOperation().get());
             return Optional.of(retval);
         }
+        // TODO still need to implement the assignments and exponents.
         else if (h.matchAndRemove(Token.Type.QUESTIONMARK).isPresent()){
             var trueCase = parseOperation().get();
             if(h.matchAndRemove(Token.Type.COLON).isEmpty())
@@ -332,20 +333,13 @@ public class Parser {
             if (next.get().getType() == Token.Type.WORD){
                 // Get the next word and sotore as the name
                 String name = h.matchAndRemove(Token.Type.WORD).get().getValue();
-                // Check for array entry(s) and parse with parseOperation().
-                if (h.matchAndRemove(Token.Type.LSQUARE).isPresent()) {
+                // Check for array entry and parse with parseOperation().
+                if(h.matchAndRemove(Token.Type.LSQUARE).isPresent()){
                     Optional<Node> index = parseOperation();
-                    // Make sure there's still tokens ahead.
-                    if (h.moreTokens()){
-                        // While theres still arguments for the array selection
-                        while (h.matchAndRemove(Token.Type.COMMA).isPresent()){
-                            // TODO How do we store the multidimentions of the multidimenitonal arrays? With an array?!?!?
-                        }
-                        if (h.matchAndRemove(Token.Type.RSQUARE).isEmpty())
-                                throw new Exception("Expected a ']' near " + name + " after " + h.getErrorPosition() + ".");
-                    }
-                    else 
-                        throw new Exception("Expected array input after " + h.getErrorPosition());
+                    // If there's no closing bracket, thow a fit.
+                    if (h.matchAndRemove(Token.Type.RSQUARE).isEmpty())
+                        throw new Exception("Expected a ']' near " + name + " after " + h.getErrorPosition() + ".");
+                    
                     VariableReferenceNode temp = new VariableReferenceNode(name, index.get());
                     return Optional.of(temp);
                 }

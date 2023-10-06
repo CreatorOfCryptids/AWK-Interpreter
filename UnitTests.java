@@ -460,7 +460,7 @@ public class UnitTests {
         test = par.parseOperation().get();
         Assert.assertEquals("a[b]", test.toString());
 
-        /*
+        /* Multidimentional arrays, are not necessary.
         lex = new Lexer("a[b,3]");
         par = new Parser(lex.lex());
         test = par.parseOperation().get();
