@@ -1,9 +1,9 @@
 public class AssignmentNode extends Node{
 
-    private VariableReferenceNode target;
-    private OperationNode expression;
+    private Node target;
+    private Node expression;
 
-    AssignmentNode(VariableReferenceNode target, OperationNode expression){
+    AssignmentNode(Node target, Node expression){
         this.target = target;
         this.expression = expression;
     }

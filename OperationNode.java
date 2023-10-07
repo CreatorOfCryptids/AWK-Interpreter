@@ -36,7 +36,7 @@ public class OperationNode extends Node{
     }
 
     public String toString() {
-        String retval = "";
+        String retval = "(";
         // Check the enum's ordinal to see if it goes before the left node or after.
         if (operation.ordinal() <= 5) 
             retval += opToString[operation.ordinal()] + left.toString();
@@ -44,6 +44,6 @@ public class OperationNode extends Node{
             retval += left.toString() + opToString[operation.ordinal()];
         if (right.isPresent())
             retval += right.get().toString();
-        return retval;
+        return retval + ")";
     }
 }
