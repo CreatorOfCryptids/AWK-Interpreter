@@ -126,10 +126,21 @@ public class Parser {
     
     /**
      * The parseOperation() method.
-     * @return Operation that operates to T/F
+     * @return an Optional node containing an operation.
      */
     public Optional<Node> parseOperation() throws Exception{
+        return parseAssignment();
+    }
+
+    /**
+     * The parseAssignment() method.
+     * @return A detected assignment node, or the results of parseTeranary
+     * @throws Exception
+     */
+    private Optional<Node> parseAssignment() throws Exception{
+        // parseTernary will either return a Ternary node or a node from a lower level, so 
         Optional<Node> left = parseTernary();
+        // Check if it follows the assignment pattern
         if (h.matchAndRemove(Token.Type.EXPONENTEQUALS).isPresent()){
             AssignmentNode retval = new AssignmentNode(left.get(), new OperationNode(left.get(), OperationNode.Operation.EXPONENT, parseMathExpression().get()));
             return Optional.of(retval);
@@ -162,21 +173,27 @@ public class Parser {
             OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.CONCATENATION, parseTernary().get());
             return Optional.of(retval);
         }
+        // If it doesn't follow the assignment pattern, just return left.
         else{
             return left;
         }
     }
 
+    /**
+     * The parseTernary() method.
+     * @return A TernaryNode or the next layer down if it doesn't follow the ternary pattern.
+     * @throws Exception
+     */
     private Optional<Node> parseTernary() throws Exception {
+        // Look for the starting boolean expression.
         Optional<Node> boolValue = parseOrLogic();
-        if (boolValue.isEmpty()) {
-            return parseMathExpression();
-        }
-        else if (h.matchAndRemove(Token.Type.QUESTIONMARK).isEmpty()){
+        // If there is no question mark, then it doesn't follow the pattern. Return the next layer down.
+        if (h.matchAndRemove(Token.Type.QUESTIONMARK).isEmpty()){
             return boolValue;
         }
         else{
             Optional<Node> trueCase = parseOperation();
+            // It has to follow the ternary pattern, so if it doesn't, throw an error.
             if (h.matchAndRemove(Token.Type.COLON).isEmpty())
                 throw new Exception("Expected a ':' after " + h.getErrorPosition());
             Optional<Node> falseCase = parseOperation();
@@ -185,20 +202,27 @@ public class Parser {
         }
     }
 
+    /**
+     * The parseOrLogic() method.
+     * @return An OperationNode with an OR operator, or the next layer down.
+     * @throws Exception
+     */
     private Optional<Node> parseOrLogic() throws Exception {
         Optional<Node> left = parseAndLogic();
+        // If it follows the pattern, make an OR node, if not, return the next layer down.
         if (h.matchAndRemove(Token.Type.OR).isPresent()) {
             var retval = new OperationNode(left.get(), OperationNode.Operation.OR, parseAndLogic().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.AND).isPresent()){
-            var retval = new OperationNode(left.get(), OperationNode.Operation.AND, parseBoolean().get());
             return Optional.of(retval);
         }
         else 
             return left;
     }
 
+    /**
+     * The parseAndLogic() method.
+     * @return Returns an OperationNode with an AND operator, or the results from the next layer down.
+     * @throws Exception
+     */
     private Optional<Node> parseAndLogic() throws Exception {
         Optional<Node> left = parseBoolean();
         if (h.matchAndRemove(Token.Type.AND).isPresent()){
@@ -209,8 +233,15 @@ public class Parser {
             return left;
     }
 
+    /**
+     * The parseBoolean() method.
+     * @return Returns an OperationNode with a found boolean Expression, or the results from the next layer down.
+     * @throws Exception
+     */
     private Optional<Node> parseBoolean() throws Exception {
+        // Only the results of parseMathExpression() can start a boolean expression.
         Optional<Node> left = parseMathExpression();
+        // Check for the right patterns.
         if (h.matchAndRemove(Token.Type.GREATER).isPresent()){
             OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.GT, parseBottomLevel().get());
             return Optional.of(retval);
@@ -243,14 +274,18 @@ public class Parser {
             OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.NOTMATCH, parseBottomLevel().get());
             return Optional.of(retval);
         }
-        return left;
+        else 
+            return left;
     }
 
+    /**
+     * The parseMathExpression() method.
+     * @return An OperationNode containing an add or subtract operator, or the results from the next layer down.
+     * @throws Exception
+     */
     private Optional<Node> parseMathExpression() throws Exception{
         Optional<Node> left = parseMathTerm();
-        if (left.isEmpty())
-            return Optional.empty();
-        else if (h.matchAndRemove(Token.Type.PLUS).isPresent()){
+        if (h.matchAndRemove(Token.Type.PLUS).isPresent()){
             var retval = new OperationNode(left.get(), OperationNode.Operation.ADD, parseMathTerm().get());
             return Optional.of(retval);
         }   
@@ -262,11 +297,14 @@ public class Parser {
             return left;
     }
 
+    /**
+     * The parseMathTerm() method.
+     * @return an OperationNode containing a multiplication, division, or modulo operator, or the results from the next layer down.
+     * @throws Exception
+     */
     private Optional<Node> parseMathTerm() throws Exception{
         Optional<Node> left = parseMathPower();
-        if (left.isEmpty())
-            return Optional.empty();
-        else if (h.matchAndRemove(Token.Type.ASTRIC).isPresent()){
+        if (h.matchAndRemove(Token.Type.ASTRIC).isPresent()){
             var retval = new OperationNode(left.get(), OperationNode.Operation.MULTIPLY, parseMathPower().get());
             return Optional.of(retval);
         }   
@@ -282,120 +320,21 @@ public class Parser {
             return left;
     }
 
+    /**
+     * The parseMathPower() method.
+     * @return an OperationNode containing an exponent operator, or the results from the next layer down.
+     * @throws Exception
+     */
     private Optional<Node> parseMathPower() throws Exception{
         Optional<Node> left = parseBottomLevel();
-        if (left.isEmpty())
-            return Optional.empty();
-        else if (h.matchAndRemove(Token.Type.EXPONENT).isPresent()){
-            var retval = new OperationNode(left.get(), OperationNode.Operation.EXPONENT, parseMathPower().get());
+        if (h.matchAndRemove(Token.Type.EXPONENT).isPresent()){
+            // We call parseMathPower() recursively here because exponents are right associative.
+            var retval = new OperationNode(left.get(), OperationNode.Operation.EXPONENT, parseMathPower().get());   
             return Optional.of(retval);
         }
         else
             return left;
     }
-
-    /**
-     * The parseOperation() method.
-     * @return Operation that operates to T/F
-     *
-    public Optional<Node> parseOperation() throws Exception{
-        /*
-        while(h.moreTokens() && h.matchAndRemove(Token.Type.LCURLY).isEmpty()){
-            h.matchAndRemove(h.peek().get().getType());
-        }* /
-        Optional<Node> left = parseBottomLevel();
-        if (left.isEmpty())
-            throw new Exception("The left node cannot be null");
-        if (h.matchAndRemove(Token.Type.PLUSPLUS).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.POSTINC);
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.MINUSMINUS).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.POSTDEC);
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.ASTRIC).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.MULTIPLY, parseOperation().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.SLASH).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.DIVIDE, parseOperation().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.MOD).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.MODULO, parseOperation().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.PLUS).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.ADD, parseOperation().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.MINUS).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.SUBTRACT, parseOperation().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.LESS).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.LT, parseBottomLevel().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.LESSEQUALS).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.LE, parseBottomLevel().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.EQUALSEQUALS).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.EQ, parseBottomLevel().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.NOTEQUALS).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.NE, parseBottomLevel().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.GREATER).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.GT, parseBottomLevel().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.GREATEREQUALS).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.GE, parseBottomLevel().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.MATCH).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.MATCH, parseBottomLevel().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.NOTMATCH).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.NOTMATCH, parseBottomLevel().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.AND).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.AND, parseOperation().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.OR).isPresent()){
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.OR, parseOperation().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.QUESTIONMARK).isPresent()){
-            var trueCase = parseOperation().get();
-            if(h.matchAndRemove(Token.Type.COLON).isEmpty())
-                throw new Exception("Expected a ':' after " + h.getErrorPosition());
-            var retval = new TernaryNode(left.get(), trueCase, parseOperation().get());
-            return Optional.of(retval);
-        }
-        else if (h.matchAndRemove(Token.Type.PLUSEQUALS).isPresent()){
-        }
-
-        else if (h.moreTokens() && (h.peek().get().getType() == Token.Type.WORD || h.peek().get().getType() == Token.Type.STRINGLITERAL)) {
-            Node right = parseBottomLevel().get();
-            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.CONCATENATION, right);
-            return Optional.of(retval);
-        }
-        //else if (acceptSeperators() == true){
-        return left;
-        /*}
-        else
-            throw new Exception("");
-        //** /
-    }/**/
 
     /**
      * The parseStatements() method.

@@ -36,6 +36,7 @@ public class OperationNode extends Node{
     }
 
     public String toString() {
+        // We put parenthesis around the OperationNode to clearly show the order of operations.
         String retval = "(";
         // Check the enum's ordinal to see if it goes before the left node or after.
         if (operation.ordinal() <= 5) 
