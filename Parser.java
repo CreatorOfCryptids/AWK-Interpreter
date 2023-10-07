@@ -129,9 +129,7 @@ public class Parser {
      * @return Operation that operates to T/F
      */
     public Optional<Node> parseOperation() throws Exception{
-        Optional<Node> left = parseLValue();
-        if (left.isEmpty())
-            return parseTernary();
+        Optional<Node> left = parseTernary();
         if (h.matchAndRemove(Token.Type.EXPONENTEQUALS).isPresent()){
             AssignmentNode retval = new AssignmentNode(left.get(), new OperationNode(left.get(), OperationNode.Operation.EXPONENT, parseMathExpression().get()));
             return Optional.of(retval);
@@ -160,23 +158,19 @@ public class Parser {
             AssignmentNode retval = new AssignmentNode(left.get(), parseTernary().get());
             return Optional.of(retval);
         }
+        else if (h.moreTokens() && (h.peek().get().getType() == Token.Type.STRINGLITERAL || h.peek().get().getType() == Token.Type.WORD)){
+            OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.CONCATENATION, parseTernary().get());
+            return Optional.of(retval);
+        }
         else{
-            /*Optional<Node> retval = parseTernary();
-            if (retval.isPresent())
-                return retval;
-            else*/
-            Optional<Node> right = parseStringCat();
-            if (right.isPresent())
-                return Optional.of(new OperationNode(left.get(), OperationNode.Operation.CONCATENATION, right.get()));
-            else 
-                return left;
+            return left;
         }
     }
 
     private Optional<Node> parseTernary() throws Exception {
-        Optional<Node> boolValue = parseLogic();
+        Optional<Node> boolValue = parseOrLogic();
         if (boolValue.isEmpty()) {
-            return parseStringCat();
+            return parseMathExpression();
         }
         else if (h.matchAndRemove(Token.Type.QUESTIONMARK).isEmpty()){
             return boolValue;
@@ -191,10 +185,10 @@ public class Parser {
         }
     }
 
-    private Optional<Node> parseLogic() throws Exception {
-        Optional<Node> left = parseBoolean();
+    private Optional<Node> parseOrLogic() throws Exception {
+        Optional<Node> left = parseAndLogic();
         if (h.matchAndRemove(Token.Type.OR).isPresent()) {
-            var retval = new OperationNode(left.get(), OperationNode.Operation.OR, parseBoolean().get());
+            var retval = new OperationNode(left.get(), OperationNode.Operation.OR, parseAndLogic().get());
             return Optional.of(retval);
         }
         else if (h.matchAndRemove(Token.Type.AND).isPresent()){
@@ -205,8 +199,18 @@ public class Parser {
             return left;
     }
 
+    private Optional<Node> parseAndLogic() throws Exception {
+        Optional<Node> left = parseBoolean();
+        if (h.matchAndRemove(Token.Type.AND).isPresent()){
+            var retval = new OperationNode(left.get(), OperationNode.Operation.AND, parseBoolean().get());
+            return Optional.of(retval);
+        }
+        else 
+            return left;
+    }
+
     private Optional<Node> parseBoolean() throws Exception {
-        Optional<Node> left = parseBottomLevel();
+        Optional<Node> left = parseMathExpression();
         if (h.matchAndRemove(Token.Type.GREATER).isPresent()){
             OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.GT, parseBottomLevel().get());
             return Optional.of(retval);
@@ -242,14 +246,6 @@ public class Parser {
         return left;
     }
 
-    private Optional<Node> parseStringCat() throws Exception {
-        // TODO Figure out String Concatination.
-        if (h.moreTokens() && h.peek().get().getType() == Token.Type.STRINGLITERAL || h.peek().get()){
-            OperationNode retval = new OperationNode(parseBottomLevel().get(), OperationNode.Operation.CONCATENATION, parseBottomLevel().get())
-        }
-        return Optional.empty();
-    }
-
     private Optional<Node> parseMathExpression() throws Exception{
         Optional<Node> left = parseMathTerm();
         if (left.isEmpty())
@@ -277,6 +273,10 @@ public class Parser {
         else if (h.matchAndRemove(Token.Type.SLASH).isPresent()){
             var retval = new OperationNode(left.get(), OperationNode.Operation.DIVIDE, parseMathPower().get());
             return Optional.of(retval);
+        }
+        else if (h.matchAndRemove(Token.Type.MOD).isPresent()){
+            var retval = new OperationNode(left.get(), OperationNode.Operation.MODULO, parseMathPower().get());
+            return Optional.of(retval); 
         }
         else
             return left;
@@ -374,7 +374,6 @@ public class Parser {
             OperationNode retval = new OperationNode(left.get(), OperationNode.Operation.OR, parseOperation().get());
             return Optional.of(retval);
         }
-        // TODO still need to implement the assignments and exponents.
         else if (h.matchAndRemove(Token.Type.QUESTIONMARK).isPresent()){
             var trueCase = parseOperation().get();
             if(h.matchAndRemove(Token.Type.COLON).isEmpty())
@@ -440,52 +439,51 @@ public class Parser {
     private Optional<Node> parseBottomLevel() throws Exception{
         // Since we need to make sure they're the right type before we consume them, we use peek() instead of /
         // matchAndRemove() for STRINGLITERALs, NUMERs and PATTERNs.
+        Node temp;
         if (h.moreTokens() && h.peek().get().getType() == Token.Type.STRINGLITERAL) {
-            ConstantNode temp = new ConstantNode(h.matchAndRemove(Token.Type.STRINGLITERAL).get());
-            return Optional.of(temp);
+            temp = new ConstantNode(h.matchAndRemove(Token.Type.STRINGLITERAL).get());
         }
         else if (h.moreTokens() && h.peek().get().getType() == Token.Type.NUMBER){
-            ConstantNode temp = new ConstantNode(h.matchAndRemove(Token.Type.NUMBER).get());
-            return Optional.of(temp);
+            temp = new ConstantNode(h.matchAndRemove(Token.Type.NUMBER).get());
         }
         else if (h.moreTokens() && h.peek().get().getType() == Token.Type.PATTERN){
             //throw new Exception("It was doing pattern, suck it ");
-            PatternNode temp = new PatternNode(h.matchAndRemove(Token.Type.PATTERN).get());
-            return Optional.of(temp);
+            temp = new PatternNode(h.matchAndRemove(Token.Type.PATTERN).get());
         }
         // We can use match and remove for the rest.
         // The nested functions are a bit different in that we are calling parse operation (kinda) recursivly
         else if (h.matchAndRemove(Token.Type.LPAREN).isPresent()){
-            Optional<Node> temp = parseOperation();
+            temp = parseOperation().get();
 
             if (h.matchAndRemove(Token.Type.RPAREN).isEmpty())
                 throw new Exception("Expected a ')' at " + h.getErrorPosition());
             // Don't need to put this one in an Optional because parseOperation already does that for us.
-            return temp;
         }
         else if (h.matchAndRemove(Token.Type.NOT).isPresent()){
-            OperationNode temp = new OperationNode(parseOperation().get(), OperationNode.Operation.NOT);
-            return Optional.of(temp);
+            temp = new OperationNode(parseOperation().get(), OperationNode.Operation.NOT);
         }
         else if (h.matchAndRemove(Token.Type.MINUS).isPresent()){
-            OperationNode temp = new OperationNode(parseOperation().get(), OperationNode.Operation.UNARYNEG);
-            return Optional.of(temp);
+            temp = new OperationNode(parseOperation().get(), OperationNode.Operation.UNARYNEG);
         }
         else if (h.matchAndRemove(Token.Type.PLUS).isPresent()){
-            OperationNode temp = new OperationNode(parseOperation().get(), OperationNode.Operation.UNARYPOS);
-            return Optional.of(temp);
+            temp = new OperationNode(parseOperation().get(), OperationNode.Operation.UNARYPOS);
         }
         else if (h.matchAndRemove(Token.Type.PLUSPLUS).isPresent()){
-            OperationNode temp = new OperationNode(parseOperation().get(), OperationNode.Operation.PREINC);
-            return Optional.of(temp);
+            temp = new OperationNode(parseOperation().get(), OperationNode.Operation.PREINC);
         }
         else if (h.matchAndRemove(Token.Type.MINUSMINUS).isPresent()){
-            OperationNode temp = new OperationNode(parseOperation().get(), OperationNode.Operation.PREDEC);
-            return Optional.of(temp);
+            temp = new OperationNode(parseOperation().get(), OperationNode.Operation.PREDEC);
         }
         else
             // If it's none of the above, then it must be a variable.
-            return parseLValue();
+            temp = parseLValue().get();
+        //check for postinc and postdec
+        if (h.matchAndRemove(Token.Type.PLUSPLUS).isPresent())
+            temp = new OperationNode(temp, OperationNode.Operation.POSTINC);
+        else if (h.matchAndRemove(Token.Type.MINUSMINUS).isPresent())
+            temp = new OperationNode(temp, OperationNode.Operation.POSTDEC);
+        return Optional.of(temp);
+
     }
 
     /**

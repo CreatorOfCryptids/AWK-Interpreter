@@ -9,7 +9,7 @@ public class AssignmentNode extends Node{
     }
 
     public String toString() {
-        String retval = target.toString() + " = " + expression.toString();
+        String retval = target.toString() + "=" + expression.toString();
         return retval;
     }
 }

@@ -11,6 +11,6 @@ public class ConstantNode extends Node{
     }
 
     public String toString() {
-        return value;
+        return "\"" + value + "\"";
     }
 }

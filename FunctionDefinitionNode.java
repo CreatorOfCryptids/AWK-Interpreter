@@ -20,7 +20,6 @@ public class FunctionDefinitionNode extends Node{
 
         retVal += ") { ";
 
-        //TODO remove the null functionality of the toString.
         if (statements != null && statements.size() >0)
             for (StatementNode s : statements)
                 retVal += s.toString() + '\n';

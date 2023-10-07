@@ -61,8 +61,6 @@ public class UnitTests {
     @Test
     public void SH_getChar() throws Exception {
         StringHandler testHandler = new StringHandler(testString1);
-
-
         Assert.assertEquals(0, testHandler.getCurrentIndex());
         Assert.assertEquals('T', testHandler.getChar());
         Assert.assertEquals(1, testHandler.getCurrentIndex());
@@ -340,203 +338,26 @@ public class UnitTests {
     //*
     @Test
     public void PAR_parseOperation2() throws Exception {
-        Lexer lex = new Lexer("(2)");
-        Parser par = new Parser(lex.lex());
-        Node test = par.parseOperation().get();
-        Assert.assertEquals("2", test.toString());
+        String[] tests = {  "(2)",  "$2",      "++preinc",  "--predec",  "!expr",  "+expr",  "-expr",  "a * b","a/b",  "a%b",  
+                            "a+b",  "a-b",  "a b",      "\"Hello, \" \"World!\"",      "a < 1",    "a<=b",  "a == b","a!=b",  
+                            "a>b",  "a>=b",  "a ~ b","a!~b",  "a[2]",    "a[b]","a && b","a||b",  "a && b || c","a ? b : c",
+                            "a ^= b", "a%=b",   "a*=b",   "a/=b",   "a+=b",   "a-=b",   "a=b","a ^ b",    "a^b^c",
+                            "z = ((a+b)-(c*d)/e) + f^g^h"};
+        String[] results = {"\"2\"","($\"2\")","(++preinc)","(--predec)","(!expr)","(+expr)","(-expr)","(a*b)","(a/b)","(a%b)",
+                            "(a+b)","(a-b)","(a cat b)","(\"Hello, \" cat \"World!\")","(a<\"1\")","(a<=b)","(a==b)","(a!=b)",
+                            "(a>b)","(a>=b)","(a~b)","(a!~b)","a[\"2\"]","a[b]","(a&&b)","(a||b)","((a&&b)||c)","a ? b : c",
+                            "a=(a^b)","a=(a%b)","a=(a*b)","a=(a/b)","a=(a+b)","a=(a-b)","a=b","(a^b)","(a^(b^c))",
+                            "z=(((a+b)-((c*d)/e))+(f^(g^h)))"};
+        Lexer lex;
+        Parser par;
+        Node test;
 
-        lex = new Lexer("$2");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("($2)", test.toString());
-        
-        lex = new Lexer("++preinc");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(++preinc)", test.toString());
-
-        lex = new Lexer("--predec");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(--predec)", test.toString());
-
-        lex = new Lexer("!expr");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(!expr)", test.toString());
-
-        lex = new Lexer("+expr");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(+expr)", test.toString());
-
-        lex = new Lexer("-expr");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(-expr)", test.toString());
-
-        lex = new Lexer("a * b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(a*b)", test.toString());
-
-        lex = new Lexer("a/b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(a/b)", test.toString());
-
-        lex = new Lexer("a%b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(a%b)", test.toString());
-
-        lex = new Lexer("a+b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(a+b)", test.toString());
-
-        lex = new Lexer("a-b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(a-b)", test.toString());
-
-        lex = new Lexer("a b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a cat b", test.toString());
-
-        lex = new Lexer("\"Hello, \" \"World!\" ");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("Hello,  cat World!", test.toString());
-
-        lex = new Lexer("a < 1");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a<1", test.toString());
-
-        lex = new Lexer("a<=b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a<=b", test.toString());
-
-        lex = new Lexer("a == b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a==b", test.toString());
-
-        lex = new Lexer("a!=b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a!=b", test.toString());
-
-        lex = new Lexer("a>b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a>b", test.toString());
-
-        lex = new Lexer("a>=b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a>=b", test.toString());
-
-        lex = new Lexer("a ~ b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(a~b)", test.toString());
-
-        lex = new Lexer("a!~b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(a!~b)", test.toString());
-
-        lex = new Lexer("a[2]");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a[2]", test.toString());
-
-        lex = new Lexer("a[b]");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a[b]", test.toString());
-
-        /* Multidimentional arrays, are not necessary.
-        lex = new Lexer("a[b,3]");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a[b,3]", test.toString());*/
-
-        lex = new Lexer("a && b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(a&&b)", test.toString());
-
-        lex = new Lexer("a||b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(a||b)", test.toString());
-
-        lex = new Lexer("a && b || c");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("((a && b) || c)", test.toString());
-
-        lex = new Lexer("a ? b : c");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a ? b : c", test.toString());
-
-        lex = new Lexer("a ^= b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a=(a^b)", test.toString());
-
-        lex = new Lexer("a%=b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a=(a%b)", test.toString());
-
-        lex = new Lexer("a*=b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a=(a*b)", test.toString());
-
-        lex = new Lexer("a/=b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a=(a/b)", test.toString());
-
-        lex = new Lexer("a+=b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a=(a+b)", test.toString());
-
-        lex = new Lexer("a-=b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a=(a-b)", test.toString());
-
-        lex = new Lexer("a=b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("a=b", test.toString());
-
-        lex = new Lexer("a ^ b");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("(a^b)", test.toString());
-
-        lex = new Lexer("z = (a+b)-(c*d)/e + f^g^h");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("z=((a+b)-(c*d)/e + (f^(g^h)))", test.toString());
-
-        /*
-        lex = new Lexer("");
-        par = new Parser(lex.lex());
-        test = par.parseOperation().get();
-        Assert.assertEquals("", test.toString());
-        */
+        for (int i = 0; i<tests.length; i++){
+            lex = new Lexer(tests[i]);
+            par = new Parser(lex.lex());
+            test = par.parseOperation().get();
+            Assert.assertEquals(results[i], test.toString());
+        }
     }
 
     @Test
@@ -584,9 +405,9 @@ public class UnitTests {
     @Test
     public void OPNODE_toString() throws Exception {
         OperationNode test = new OperationNode(new VariableReferenceNode("leftVariable"), OperationNode.Operation.PREDEC);
-        Assert.assertEquals("--leftVariable", test.toString());
+        Assert.assertEquals("(--leftVariable)", test.toString());
         test = new OperationNode(new VariableReferenceNode("leftVariable"), OperationNode.Operation.DIVIDE, new VariableReferenceNode("5"));
-        Assert.assertEquals("leftVariable/5", test.toString());
+        Assert.assertEquals("(leftVariable/5)", test.toString());
     }
 
     @Test
