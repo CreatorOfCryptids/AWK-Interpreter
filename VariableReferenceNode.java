@@ -2,8 +2,8 @@ import java.util.Optional;
 
 public class VariableReferenceNode extends Node{
 
-    String name;
-    Optional<Node> indexExpression;
+    private String name;
+    private Optional<Node> indexExpression;
 
     /**
      * The VariableReferenceNode constructor.
