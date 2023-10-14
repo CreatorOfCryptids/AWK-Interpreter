@@ -1,6 +1,6 @@
 public class ConstantNode extends Node{
     
-    String value;
+    private String value;
     
     /**
      * The ConstantNode Token constructor.

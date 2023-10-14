@@ -115,13 +115,46 @@ public class Parser {
      */
     private BlockNode parseBlock() throws Exception{
         // Take in the operation. If there was a Begin or END statement, this will just skip to the statements.
-        Optional<Node> condition;
+        Optional<Node> condition = parseOperation();
+        LinkedList<StatementNode> statementList = new LinkedList<StatementNode>();
         if (h.matchAndRemove(Token.Type.LCURLY).isEmpty())
-            condition = parseOperation();
+            statementList = parseStatements();
         else 
-            condition = Optional.empty();
-        LinkedList<StatementNode> statementList = parseStatements();
+            statementList.add(parseStatement().get());
         return new BlockNode(condition, statementList);
+    }
+
+    /**
+     * The parseStatements() method.
+     * @return A LinkedList of Optional<StatementNode>.
+     */
+    private LinkedList<StatementNode> parseStatements() throws Exception{
+        LinkedList<StatementNode> statementList = new LinkedList<StatementNode> ();
+        // Loop until there's a '}'
+        while (h.matchAndRemove(Token.Type.RCURLY).isEmpty()) {
+            // Make sure there's still more tokens
+            if (!h.moreTokens())
+                throw new Exception("Expected a closing '}' after " + h.getErrorPosition());
+            // Parse the next statement and add to the list.
+            Optional<StatementNode> statement = parseStatement();
+            if (statement.isPresent())
+                statementList.add(statement.get());
+        }
+        return statementList;
+    }
+
+    /**
+     * The parseStatement() method.
+     * @return StatementNode made from the token stream.
+     */
+    private Optional<StatementNode> parseStatement(){
+        // Just to let it take in things, i know this kinda goes against the whole reason that we dont have a function to explicityly \
+        // do this, but it allows testing.
+        //TODO Don't keep this please, future me.
+        while (acceptSeperators() == false && h.peek().get().getType() != Token.Type.RCURLY){
+            h.matchAndRemove(h.peek().get().getType());
+        }
+        return Optional.empty();
     }
     
     /**
@@ -284,17 +317,23 @@ public class Parser {
      * @throws Exception
      */
     private Optional<Node> parseMathExpression() throws Exception{
-        Optional<Node> left = parseMathTerm();
-        if (h.matchAndRemove(Token.Type.PLUS).isPresent()){
-            var retval = new OperationNode(left.get(), OperationNode.Operation.ADD, parseMathTerm().get());
-            return Optional.of(retval);
-        }   
-        else if (h.matchAndRemove(Token.Type.MINUS).isPresent()){
-            var retval = new OperationNode(left.get(), OperationNode.Operation.SUBTRACT, parseMathTerm().get());
-            return Optional.of(retval);
+        Optional<Node> retval = parseMathTerm();
+        // Repeat catching '+' and '-' to make sure that you catch multiple terms in a row.
+        while (h.moreTokens() && (h.peek().get().getType() == Token.Type.PLUS || h.peek().get().getType() == Token.Type.MINUS)){
+            if (h.matchAndRemove(Token.Type.PLUS).isPresent()){
+                OperationNode retnode = new OperationNode(retval.get(), OperationNode.Operation.ADD, parseMathTerm().get());
+                retval = Optional.of(retnode);
+                //return Optional.of(retval);
+            }   
+            else if (h.matchAndRemove(Token.Type.MINUS).isPresent()){
+                /*var retval = new OperationNode(left.get(), OperationNode.Operation.SUBTRACT, parseMathTerm().get());
+                return Optional.of(retval);*/
+                OperationNode retnode = new OperationNode(retval.get(), OperationNode.Operation.SUBTRACT, parseMathTerm().get());
+                retval = Optional.of(retnode);
+            }
         }
-        else
-            return left;
+        
+        return retval;
     }
 
     /**
@@ -334,39 +373,6 @@ public class Parser {
         }
         else
             return left;
-    }
-
-    /**
-     * The parseStatements() method.
-     * @return A LinkedList of Optional<StatementNode>.
-     */
-    private LinkedList<StatementNode> parseStatements() throws Exception{
-        LinkedList<StatementNode> statementList = new LinkedList<StatementNode> ();
-        // Loop until there's a '}'
-        while (h.matchAndRemove(Token.Type.RCURLY).isEmpty()) {
-            // Make sure there's still more tokens
-            if (!h.moreTokens())
-                throw new Exception("Expected a closing '}' after " + h.getErrorPosition());
-            // Parse the next statement and add to the list.
-            Optional<StatementNode> statement = parseStatement();
-            if (statement.isPresent())
-                statementList.add(statement.get());
-        }
-        return statementList;
-    }
-
-    /**
-     * The parseStatement() method.
-     * @return StatementNode made from the token stream.
-     */
-    private Optional<StatementNode> parseStatement(){
-        // Just to let it take in things, i know this kinda goes against the whole reason that we dont have a function to explicityly \
-        // do this, but it allows testing.
-        //TODO Don't keep this please, future me.
-        while (acceptSeperators() == false && h.peek().get().getType() != Token.Type.RCURLY){
-            h.matchAndRemove(h.peek().get().getType());
-        }
-        return Optional.empty();
     }
 
     /**

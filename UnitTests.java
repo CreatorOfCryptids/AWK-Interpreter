@@ -341,12 +341,12 @@ public class UnitTests {
         String[] tests = {  "(2)",  "$2",      "++preinc",  "--predec",  "!expr",  "+expr",  "-expr",  "a * b","a/b",  "a%b",  
                             "a+b",  "a-b",  "a b",      "\"Hello, \" \"World!\"",      "a < 1",    "a<=b",  "a == b","a!=b",  
                             "a>b",  "a>=b",  "a ~ b","a!~b",  "a[2]",    "a[b]","a && b","a||b",  "a && b || c","a ? b : c",
-                            "a ^= b", "a%=b",   "a*=b",   "a/=b",   "a+=b",   "a-=b",   "a=b","a ^ b",    "a^b^c",
-                            "z = ((a+b)-(c*d)/e) + f^g^h"};
+                            "a ^= b", "a%=b",   "a*=b",   "a/=b",   "a+=b",   "a-=b",   "a=b","a ^ b",    "a^b^c", "a + b + c",
+                            "z = (a+b)-(c*d)/e + f^g^h"};
         String[] results = {"\"2\"","($\"2\")","(++preinc)","(--predec)","(!expr)","(+expr)","(-expr)","(a*b)","(a/b)","(a%b)",
                             "(a+b)","(a-b)","(a cat b)","(\"Hello, \" cat \"World!\")","(a<\"1\")","(a<=b)","(a==b)","(a!=b)",
                             "(a>b)","(a>=b)","(a~b)","(a!~b)","a[\"2\"]","a[b]","(a&&b)","(a||b)","((a&&b)||c)","a ? b : c",
-                            "a=(a^b)","a=(a%b)","a=(a*b)","a=(a/b)","a=(a+b)","a=(a-b)","a=b","(a^b)","(a^(b^c))",
+                            "a=(a^b)","a=(a%b)","a=(a*b)","a=(a/b)","a=(a+b)","a=(a-b)","a=b","(a^b)","(a^(b^c))", "((a+b)+c)",
                             "z=(((a+b)-((c*d)/e))+(f^(g^h)))"};
         Lexer lex;
         Parser par;
