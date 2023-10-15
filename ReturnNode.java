@@ -1,8 +1,8 @@
 public class ReturnNode extends StatementNode{
 
-    private OperationNode returnValue;
+    private Node returnValue;
 
-    ReturnNode(OperationNode returnValue){
+    ReturnNode(Node returnValue){
         this.returnValue = returnValue;
     }
 

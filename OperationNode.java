@@ -35,6 +35,14 @@ public class OperationNode extends Node{
         this.right = Optional.empty();
     }
 
+    /**
+     * The getOperation() method.
+     * @return The operation of the operation node.
+     */
+    public Operation getOperation(){
+        return operation;
+    }
+
     public String toString() {
         // We put parenthesis around the OperationNode to clearly show the order of operations.
         String retval = "(";

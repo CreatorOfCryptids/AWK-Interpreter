@@ -2,9 +2,9 @@ import java.util.LinkedList;
 
 public class ForNode extends StatementNode{
 
-    private OperationNode initialization;
-    private OperationNode condition;
-    private OperationNode iterator;
+    private Node initialization;
+    private Node condition;
+    private Node iterator;
     private LinkedList<StatementNode> statements;
 
     /**
@@ -14,7 +14,7 @@ public class ForNode extends StatementNode{
      * @param iter The iteration part of the for loop.
      * @param statements The statements in the for loop.
      */
-    ForNode(OperationNode initial, OperationNode condition, OperationNode iter, LinkedList<StatementNode> statements){
+    ForNode(Node initial, Node condition, Node iter, LinkedList<StatementNode> statements){
         this.initialization = initial;
         this.condition = condition;
         this.iterator = iter;

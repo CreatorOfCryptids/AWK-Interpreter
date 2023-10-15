@@ -1,0 +1,21 @@
+import java.util.LinkedList;
+
+public class FunctionCallNode extends StatementNode{
+
+    private String functionName;
+    private LinkedList<Node> parameters;
+
+    FunctionCallNode(String functionName, LinkedList<Node> parameters){
+        this.functionName = functionName;
+        this.parameters = parameters;
+    }
+
+    public String toString(){
+        String retval = functionName;
+        retval += "(";
+        for (Node n : parameters)
+            retval += n.toString() + ',';
+        retval += ")";
+        return retval;
+    }
+}

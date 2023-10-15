@@ -361,6 +361,55 @@ public class UnitTests {
     }
 
     @Test
+    public void PAR_parse2() throws Exception {
+        Lexer lex = new Lexer("BEGIN {a = \"Data:\"; count = 0} $1=='b:' {count++; funcky($3)} function funky (b){b + $2 ? 2 :3;} END {printable = a + count}");
+        Parser test = new Parser(lex.lex());
+        Assert.assertEquals("", test.parse().toString());
+    }
+
+    @Test
+    public void PAR_parseIf() throws Exception{
+        Lexer lex = new Lexer("");
+        Parser test = new Parser(lex.lex());
+        Assert.assertEquals("", test.parse().toString());
+    }
+
+    @Test
+    public void PAR_parseFor() throws Exception{
+        Lexer lex = new Lexer("");
+        Parser test = new Parser(lex.lex());
+        Assert.assertEquals("", test.parse().toString());
+    }
+
+    @Test
+    public void PAR_parseWhile() throws Exception{
+        Lexer lex = new Lexer("");
+        Parser test = new Parser(lex.lex());
+        Assert.assertEquals("", test.parse().toString());
+    }
+
+    @Test
+    public void PAR_parseDoWhile() throws Exception{
+        Lexer lex = new Lexer("");
+        Parser test = new Parser(lex.lex());
+        Assert.assertEquals("", test.parse().toString());
+    }
+
+    @Test
+    public void PAR_parseReturnDelete() throws Exception{
+        Lexer lex = new Lexer("");
+        Parser test = new Parser(lex.lex());
+        Assert.assertEquals("", test.parse().toString());
+    }
+
+    @Test
+    public void PAR_parseBreakContinue() throws Exception{
+        Lexer lex = new Lexer("");
+        Parser test = new Parser(lex.lex());
+        Assert.assertEquals("", test.parse().toString());
+    }
+
+    @Test
     public void PNODE_toString() throws Exception {
         ProgramNode testNode = new ProgramNode();
         Assert.assertEquals("", testNode.toString());

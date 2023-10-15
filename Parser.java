@@ -78,10 +78,6 @@ public class Parser {
                 acceptSeperators();
             }
             acceptSeperators();
-            // Take in the '{' or throw an exception.
-            if (h.matchAndRemove(Token.Type.LCURLY).isEmpty()){
-                throw new Exception("Expected a '{' after the " + name + " function declaration at " + h.getErrorPosition());
-            }
             // Take in the statments
             statementList = parseStatements();
             // Initalize the FunctionDefinionNode and add to the ProgramNode.
@@ -117,10 +113,7 @@ public class Parser {
         // Take in the operation. If there was a Begin or END statement, this will just skip to the statements.
         Optional<Node> condition = parseOperation();
         LinkedList<StatementNode> statementList = new LinkedList<StatementNode>();
-        if (h.matchAndRemove(Token.Type.LCURLY).isEmpty())
-            statementList = parseStatements();
-        else 
-            statementList.add(parseStatement().get());
+        statementList = parseStatements();
         return new BlockNode(condition, statementList);
     }
 
@@ -129,17 +122,20 @@ public class Parser {
      * @return A LinkedList of Optional<StatementNode>.
      */
     private LinkedList<StatementNode> parseStatements() throws Exception{
-        LinkedList<StatementNode> statementList = new LinkedList<StatementNode> ();
+        LinkedList<StatementNode> statementList = new LinkedList<StatementNode>();
         // Loop until there's a '}'
-        while (h.matchAndRemove(Token.Type.RCURLY).isEmpty()) {
-            // Make sure there's still more tokens
-            if (!h.moreTokens())
-                throw new Exception("Expected a closing '}' after " + h.getErrorPosition());
-            // Parse the next statement and add to the list.
-            Optional<StatementNode> statement = parseStatement();
-            if (statement.isPresent())
-                statementList.add(statement.get());
-        }
+        if (h.matchAndRemove(Token.Type.RCURLY).isPresent())
+            while (h.matchAndRemove(Token.Type.RCURLY).isEmpty()) {
+                // Make sure there's still more tokens
+                if (!h.moreTokens())
+                    throw new Exception("Expected a closing '}' after " + h.getErrorPosition());
+                // Parse the next statement and add to the list.
+                Optional<StatementNode> statement = parseStatement();
+                if (statement.isPresent())
+                    statementList.add(statement.get());
+            }
+        else
+            statementList.add(parseStatement().get());
         return statementList;
     }
 
@@ -147,16 +143,236 @@ public class Parser {
      * The parseStatement() method.
      * @return StatementNode made from the token stream.
      */
-    private Optional<StatementNode> parseStatement(){
-        // Just to let it take in things, i know this kinda goes against the whole reason that we dont have a function to explicityly \
-        // do this, but it allows testing.
-        //TODO Don't keep this please, future me.
-        while (acceptSeperators() == false && h.peek().get().getType() != Token.Type.RCURLY){
-            h.matchAndRemove(h.peek().get().getType());
+    private Optional<StatementNode> parseStatement()throws Exception{
+        Optional<StatementNode> retval;
+        if(h.matchAndRemove(Token.Type.IF).isPresent())
+            // This looks really wonky, but I needed to do this to ensure type safety
+            retval = Optional.of(parseIf().get());
+        else if(h.matchAndRemove(Token.Type.FOR).isPresent())
+            retval = parseFor();
+        else if(h.matchAndRemove(Token.Type.WHILE).isPresent())
+            retval = parseWhile();
+        else if(h.matchAndRemove(Token.Type.DO).isPresent())
+            retval = parseDoWhile();
+        else if(h.matchAndRemove(Token.Type.RETURN).isPresent())
+            retval = parseReturn();
+        else if(h.matchAndRemove(Token.Type.DELETE).isPresent())
+            retval = parseDelete();
+        else if(h.matchAndRemove(Token.Type.BREAK).isPresent()){
+            var bn = new BreakNode();
+            retval = Optional.of(bn);
         }
-        return Optional.empty();
+        else if(h.matchAndRemove(Token.Type.CONTINUE).isPresent()){
+            var cn = new ContinueNode();
+            retval = Optional.of(cn);
+        }
+        else if (h.moreTokens() && h.peek().get().getType() == Token.Type.WORD)
+            retval = parseFunctionCall();
+        else{
+            retval = parseOperation();
+        }
+        acceptSeperators();
+        return retval;
+    }
+
+    /**
+     * The parseIf() method.
+     * @return an IfNode containing a parsed if statement.
+     */
+    private Optional<IfNode> parseIf()throws Exception{
+        IfNode retval;
+        if (h.matchAndRemove(Token.Type.LPAREN).isEmpty())
+            throw new Exception("Expected a '(' after " +  h.getErrorPosition());
+
+        var retNode = parseOperation().get(); 
+        // parseOperation() only returns a Node, so I need to double check to make sure it's an operation node.
+        // Might've made more sense to do inheritance shenanegins to make this work better, but this is what the assignment called for
+        if (!(retNode instanceof OperationNode))
+            throw new Exception("Expected an operation at or before " + h.getErrorPosition());
+        OperationNode retOp = (OperationNode) retNode;
+
+        // Make sure there's a closing parenthesis when expected.
+        if (h.matchAndRemove(Token.Type.RPAREN).isEmpty())
+            throw new Exception("Expected a ')' after " + h.getErrorPosition());
+        // Swallow any newlines.
+            acceptSeperators();
+        
+        var statements = parseStatements();
+
+        // Check for elseif and else statements
+        if (h.matchAndRemove(Token.Type.ELSE).isPresent())
+            // If there is an if statement after the else, then pass the recursivly called parseIf() to the else if constructor.
+            if (h.matchAndRemove(Token.Type.IF).isPresent())
+                retval = new IfNode(retOp, statements, parseIf().get());
+            // If there is not an if, then just take it as a list of statements and pass that to the else constructor
+            else
+                retval = new IfNode(parseStatements());
+        else
+            retval = new IfNode(retOp, statements);
+        
+        return Optional.of(retval);
     }
     
+    /**
+     * The parseFor() method.
+     * @return either a parsed ForNode or parsed ForEachNode.
+     * @throws Exception
+     */
+    private Optional<StatementNode> parseFor() throws Exception{
+        if (h.matchAndRemove(Token.Type.LPAREN).isEmpty())
+            throw new Exception("Expected a '(' after " + h.getErrorPosition());
+        boolean foundIn = false;
+        // Check to see if the key word "in" is inside the parentheses.
+        for(int i=1; (h.moreTokens() && (h.peek(i).get().getType() != Token.Type.RPAREN)); i++)
+            if (h.peek(i).isEmpty())
+                throw new Exception("Expected a ')' after " + h.getErrorPosition());
+            else if (h.peek(i).get().getType() == Token.Type.IN){
+                foundIn = true;
+                break;
+            }
+        
+        if (foundIn){
+            ForEachNode retval;
+
+            // Make sure that the iterator is a valid variable reference.
+            var retNode = parseLValue().get();
+            if (!(retNode instanceof VariableReferenceNode))
+                throw new Exception("Expected a valid variable name at " + h.getErrorPosition());
+            VariableReferenceNode iterator = (VariableReferenceNode) retNode;
+
+            // Make sure that there is the "in" token.
+            if (h.matchAndRemove(Token.Type.IN).isEmpty())
+                throw new Exception("Expected the 'in' token after " + h.getErrorPosition());
+
+            // Make sure that the iteratable is a valid variable reference.
+            retNode = parseLValue().get();
+            if (!(retNode instanceof VariableReferenceNode))
+                throw new Exception("Expected a valid variable name at " + h.getErrorPosition());
+            VariableReferenceNode iteratable = (VariableReferenceNode) retNode;
+
+            if(h.matchAndRemove(Token.Type.RPAREN).isEmpty())
+                throw new Exception("Expected a ')' after " +  h.getErrorPosition());
+            // Swallow any newlines.
+            acceptSeperators();
+
+            retval = new ForEachNode(iterator, iteratable, parseStatements());
+            return Optional.of(retval);
+        }
+        else{
+            ForNode retval;
+
+            // Probably not best practice, but since all three are OperationNodes, I just made an Array and iterated instead of initalizing three different variables.
+            Node[] operationTriple = new OperationNode[3];
+
+            // Take in the three operations.
+            for(int i = 0; i<operationTriple.length; i++){
+                operationTriple[i] = parseOperation().get();
+                acceptSeperators();
+            }
+
+            if(h.matchAndRemove(Token.Type.RPAREN).isEmpty())
+                throw new Exception("Expected a ')' after " +  h.getErrorPosition()); 
+            
+            // Swallow any newlines.
+            acceptSeperators();
+
+            retval = new ForNode(operationTriple[0], operationTriple[1], operationTriple[2], parseStatements());
+
+            return Optional.of(retval);
+        }
+    }
+
+    /**
+     * The parseWhile method.
+     * @return the parsed While Loop.
+     * @throws Exception
+     */
+    private Optional<StatementNode> parseWhile()throws Exception{
+        WhileNode retval; 
+        if (h.matchAndRemove(Token.Type.LPAREN).isEmpty())
+            throw new Exception("Expected a '(' after " + h.getErrorPosition());
+        
+        var retNode = parseOperation().get(); 
+        if (!(retNode instanceof OperationNode))
+            throw new Exception("Expected an operation at or before " + h.getErrorPosition());
+        OperationNode retOp = (OperationNode) retNode;
+
+        // Make sure there's a closing parenthesis when expected.
+        if (h.matchAndRemove(Token.Type.RPAREN).isEmpty())
+            throw new Exception("Expected a ')' after " + h.getErrorPosition());
+        // Swallow any newlines.
+        acceptSeperators();
+        
+        retval = new WhileNode(retOp, parseStatements());
+        
+        return Optional.of(retval);
+    }
+
+    /**
+     * The parseDoWhile() method.
+     * @return A parsed DoWhile Loop.
+     * @throws Exception
+     */
+    private Optional<StatementNode> parseDoWhile()throws Exception{
+        DoWhileNode retval;
+
+        LinkedList<StatementNode> statements = parseStatements();
+
+        acceptSeperators();
+
+        if (h.matchAndRemove(Token.Type.LPAREN).isEmpty())
+            throw new Exception("Expected a '(' after " + h.getErrorPosition());
+        
+        var retNode = parseOperation().get(); 
+        if (!(retNode instanceof OperationNode))
+            throw new Exception("Expected an operation at or before " + h.getErrorPosition());
+        OperationNode retOp = (OperationNode) retNode;
+
+        // Make sure there's a closing parenthesis when expected.
+        if (h.matchAndRemove(Token.Type.RPAREN).isEmpty())
+            throw new Exception("Expected a ')' after " + h.getErrorPosition());
+
+        retval = new DoWhileNode(retOp, statements);
+
+        return Optional.of(retval);
+    }
+
+    /**
+     * The parseReturn() method.
+     * @return A parsed ReturnNode.
+     * @throws Exception
+     */
+    private Optional<StatementNode> parseReturn()throws Exception{
+        ReturnNode retval = new ReturnNode(parseOperation().get());
+        return Optional.of(retval);
+    }
+
+    /**
+     * The parseDelete() method.
+     * @return A parsed DeleteNode.
+     * @throws Exception
+     */
+    private Optional<StatementNode> parseDelete()throws Exception{
+
+        var lValue = parseLValue().get();
+
+        if (!(lValue instanceof VariableReferenceNode))
+            throw new Exception("Expected a variable at " + h.getErrorPosition());
+         
+        VariableReferenceNode variableNode = (VariableReferenceNode) lValue;
+        DeleteNode retval = new DeleteNode(variableNode);
+        return Optional.of(retval);
+    }
+
+    /**
+     * The parseFunctionCall() method.
+     * @return
+     * @throws Exception
+     */
+    private Optional<StatementNode> parseFunctionCall()throws Exception{
+        return Optional.empty();
+    }
+
     /**
      * The parseOperation() method.
      * @return an Optional node containing an operation.
