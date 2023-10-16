@@ -422,8 +422,7 @@ public class UnitTests {
         Assert.assertEquals("BEGIN { while (\"1\"){\n" + //
                 "prnt(\"f\",);\n" + //
                 "}\n" + //
-                "}\n" + //
-                "", test.parse().toString());
+                "}\n", test.parse().toString());
     }
 
     @Test

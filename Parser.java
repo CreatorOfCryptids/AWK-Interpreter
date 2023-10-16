@@ -25,8 +25,10 @@ public class Parser {
             acceptSeperators();
             if (parseFunction(pNode)){}
             else if (parseAction(pNode)){}
+            //* There's a bug that causes an infinite loop if you add an extra '}' at the end of the input, and I was trying to fix it.
             else if (h.matchAndRemove(Token.Type.RCURLY).isPresent())
                 throw new Exception("Unexpected '}' found at " + h.getErrorPosition());
+            //*/
             else
                 throw new Exception("Issue parsing after " + h.getErrorPosition());
             // If both return false, throw an exception
@@ -63,7 +65,7 @@ public class Parser {
 
             acceptSeperators();
 
-            // Take in name, if its missing throw an exception.
+            // Take in name, if it's missing throw an exception.
             if (h.peek().get().getType() == Token.Type.WORD)
                 name = h.matchAndRemove(Token.Type.WORD).get().getValue();
             else
@@ -89,9 +91,9 @@ public class Parser {
     }
 
     /**
-     * The parseFunction() method.
+     * The parseAction() method.
      * @param node
-     * @return True if the fucntion can add an action to the node, False if not.
+     * @return True if there is a parseable action, false if not.
      */
     boolean parseAction(ProgramNode node)throws Exception{
         // Check for BEGIN and END
@@ -154,37 +156,38 @@ public class Parser {
      * @return StatementNode made from the token stream.
      */
     private Optional<StatementNode> parseStatement()throws Exception{
-        Optional<StatementNode> retval;
+        Optional<StatementNode> returnStatement;
         acceptSeperators();
         if(h.matchAndRemove(Token.Type.IF).isPresent())
             // This looks really wonky, but I needed to do this to ensure type safety
-            retval = Optional.of(parseIf().get());
+            returnStatement = Optional.of(parseIf().get());
         else if(h.matchAndRemove(Token.Type.FOR).isPresent())
-            retval = parseFor();
+            returnStatement = parseFor();
         else if(h.matchAndRemove(Token.Type.WHILE).isPresent())
-            retval = parseWhile();
+            returnStatement = parseWhile();
         else if(h.matchAndRemove(Token.Type.DO).isPresent())
-            retval = parseDoWhile();
+            returnStatement = parseDoWhile();
         else if(h.matchAndRemove(Token.Type.RETURN).isPresent())
-            retval = parseReturn();
+            returnStatement = parseReturn();
         else if(h.matchAndRemove(Token.Type.DELETE).isPresent())
-            retval = parseDelete();
+            returnStatement = parseDelete();
         else if(h.matchAndRemove(Token.Type.BREAK).isPresent()){
             var bn = new BreakNode();
-            retval = Optional.of(bn);
+            returnStatement = Optional.of(bn);
         }
         else if(h.matchAndRemove(Token.Type.CONTINUE).isPresent()){
             var cn = new ContinueNode();
-            retval = Optional.of(cn);
+            returnStatement = Optional.of(cn);
         }
         else{
-            var retOperation = parseOperation();
-            if (retOperation.isPresent() && retOperation.get() instanceof StatementNode)
-                retval = Optional.of((StatementNode) retOperation.get());
+            var returnedOperation = parseOperation();
+            // Make sure that it is an assignment node.
+            if (returnedOperation.isPresent() && returnedOperation.get() instanceof StatementNode)
+                returnStatement = Optional.of((StatementNode) returnedOperation.get());
             else
                 return Optional.empty();
         }
-        return retval;
+        return returnStatement;
     }
 
     /**
@@ -192,7 +195,7 @@ public class Parser {
      * @return an IfNode containing a parsed if statement.
      */
     private Optional<IfNode> parseIf()throws Exception{
-        IfNode retval;
+        
         if (h.matchAndRemove(Token.Type.LPAREN).isEmpty())
             throw new Exception("Expected a '(' after " +  h.getErrorPosition());
 
@@ -207,20 +210,22 @@ public class Parser {
         // Swallow any newlines.
             acceptSeperators();
         
-        var statements = parseStatements();
+        LinkedList<StatementNode> statements = parseStatements();
 
+        // Initialize the IfNode pointer outside so we can decide whether to add else statements.
+        IfNode returnIfNode;
         // Check for elseif and else statements
         if (h.matchAndRemove(Token.Type.ELSE).isPresent())
             // If there is an if statement after the else, then pass the recursivly called parseIf() to the else if constructor.
             if (h.matchAndRemove(Token.Type.IF).isPresent())
-                retval = new IfNode(condition, statements, parseIf().get());
+                returnIfNode = new IfNode(condition, statements, parseIf().get());
             // If there is not an if, then just take it as a list of statements and pass that to the else constructor
             else
-                retval = new IfNode(parseStatements());
+                returnIfNode = new IfNode(parseStatements());
         else
-            retval = new IfNode(condition, statements);
+            returnIfNode = new IfNode(condition, statements);
         
-        return Optional.of(retval);
+        return Optional.of(returnIfNode);
     }
     
     /**
@@ -231,8 +236,9 @@ public class Parser {
     private Optional<StatementNode> parseFor() throws Exception{
         if (h.matchAndRemove(Token.Type.LPAREN).isEmpty())
             throw new Exception("Expected a '(' after " + h.getErrorPosition());
-        boolean foundIn = false;
+        
         // Check to see if the key word "in" is inside the parentheses.
+        boolean foundIn = false;
         for(int i=1; (h.moreTokens() && (h.peek(i).get().getType() != Token.Type.RPAREN)); i++)
             if (h.peek(i).isEmpty())
                 throw new Exception("Expected a ')' after " + h.getErrorPosition());
@@ -241,7 +247,7 @@ public class Parser {
                 break;
             }
         
-        if (foundIn){
+        if (foundIn){ // If there is an IN token inside the parenthesis, then it's a ForEachNode.
             ForEachNode retval;
 
             // Make sure that the iterator is a valid variable reference.
@@ -268,7 +274,7 @@ public class Parser {
             retval = new ForEachNode(iterator, iteratable, parseStatements());
             return Optional.of(retval);
         }
-        else{
+        else{ // Otherwize it's a for node.
             ForNode retval;
 
             Node initiation, condition, iteration;
@@ -298,14 +304,14 @@ public class Parser {
      * @throws Exception
      */
     private Optional<StatementNode> parseWhile()throws Exception{
-        WhileNode retval; 
         if (h.matchAndRemove(Token.Type.LPAREN).isEmpty())
             throw new Exception("Expected a '(' after " + h.getErrorPosition());
         
-        Optional<Node> optNode = parseOperation(); 
-        if (optNode.isEmpty())
+        // Take in the condition, and make sure it's valid.
+        Optional<Node> returnedOperation = parseOperation(); 
+        if (returnedOperation.isEmpty())
             throw new Exception("Expected an operation at or before " + h.getErrorPosition());
-        Node condition = optNode.get();
+        Node condition = returnedOperation.get();
 
         // Make sure there's a closing parenthesis when expected.
         if (h.matchAndRemove(Token.Type.RPAREN).isEmpty())
@@ -313,8 +319,7 @@ public class Parser {
         // Swallow any newlines.
         acceptSeperators();
         
-        retval = new WhileNode(condition, parseStatements());
-        
+        WhileNode retval = new WhileNode(condition, parseStatements());
         return Optional.of(retval);
     }
 
@@ -324,29 +329,26 @@ public class Parser {
      * @throws Exception
      */
     private Optional<StatementNode> parseDoWhile()throws Exception{
-        DoWhileNode retval;
-
         LinkedList<StatementNode> statements = parseStatements();
-
         acceptSeperators();
 
         if (h.matchAndRemove(Token.Type.WHILE).isEmpty())
-            throw new Exception("Expected a while token after " + h.getErrorPosition());
+            throw new Exception("Expected a WHILE token after " + h.getErrorPosition());
 
         if (h.matchAndRemove(Token.Type.LPAREN).isEmpty())
             throw new Exception("Expected a '(' after " + h.getErrorPosition());
         
-        Optional<Node> optNode = parseOperation(); 
-        if (optNode.isEmpty())
+        // Take in the condition, and make sure it's valid.
+        Optional<Node> returnedOperation = parseOperation(); 
+        if (returnedOperation.isEmpty())
             throw new Exception("Expected an operation at or before " + h.getErrorPosition());
-        Node condition = optNode.get();
+        Node condition = returnedOperation.get();
 
         // Make sure there's a closing parenthesis when expected.
         if (h.matchAndRemove(Token.Type.RPAREN).isEmpty())
             throw new Exception("Expected a ')' after " + h.getErrorPosition());
 
-        retval = new DoWhileNode(condition, statements);
-
+        DoWhileNode retval = new DoWhileNode(condition, statements);
         return Optional.of(retval);
     }
 
@@ -366,13 +368,13 @@ public class Parser {
      * @throws Exception
      */
     private Optional<StatementNode> parseDelete()throws Exception{
+        Node lValue = parseLValue().get();
 
-        var lValue = parseLValue().get();
-
+        // Make sure it is the right kind of node.
         if (!(lValue instanceof VariableReferenceNode))
             throw new Exception("Expected a variable at " + h.getErrorPosition());
-         
         VariableReferenceNode variableNode = (VariableReferenceNode) lValue;
+
         DeleteNode retval = new DeleteNode(variableNode);
         return Optional.of(retval);
     }
@@ -383,21 +385,21 @@ public class Parser {
      * @throws Exception
      */
     private Optional<StatementNode> parseFunctionCall()throws Exception{
-        FunctionCallNode retval;
-
         String name = h.matchAndRemove(Token.Type.WORD).get().getValue();
 
         h.matchAndRemove(Token.Type.LPAREN);    // Already checked for the '(' before calling the parseFunctionCall().
 
-        LinkedList<Node> statements = new LinkedList<>();
+        LinkedList<Node> parameters = new LinkedList<>();
+        // This should not be replaced with parseStatements, because this takes parameters, not statements.
         while(h.moreTokens() && h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
-            statements.add(parseOperation().get());
+            parameters.add(parseOperation().get());
+            // If there isn't a comma after a parameter, then the next token should be an RPAREN.
             if(h.matchAndRemove(Token.Type.COMMA).isEmpty())
                 if(h.moreTokens() && h.peek().get().getType() != Token.Type.RPAREN)
                     throw new Exception("Expected a ')' after " + h.getErrorPosition());
         }
 
-        retval = new FunctionCallNode(name, statements);
+        FunctionCallNode retval = new FunctionCallNode(name, parameters);
         return Optional.of(retval);
     }
 
