@@ -2,10 +2,10 @@ import java.util.LinkedList;
 
 public class WhileNode extends StatementNode{
 
-    private OperationNode condition;
+    private Node condition;
     private LinkedList<StatementNode> statements;
 
-    WhileNode (OperationNode condition, LinkedList<StatementNode> statements){
+    WhileNode (Node condition, LinkedList<StatementNode> statements){
         this.condition = condition;
         this.statements = statements;
     }

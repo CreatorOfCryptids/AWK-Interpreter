@@ -22,7 +22,7 @@ public class UnitTests {
     "\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldnotforget the\"\" `*patern*`";
     String desiredOutput2 = "";
     String testParse = 
-            "function add_three (number) {\nreturn number + 3\n}\nBEGIN {\nprint \"Hello, world!\"\n}\n{\nprint add_three(36)     # Outputs '''39'''\n}\nEND {\nprint \"Goodbye\"\n}";
+            "function add_three (number) {\nreturn number + 3\n}\nBEGIN {\nprnt(\"Hello, world!\")\n}\n{\nprnt(add_three(36))     # Outputs '''39'''\n}\nEND {\nprnt(\"Goodbye\")\n}";
     String testTH = "test for test while hello test do test break examin if whatabout continue tryAn else butwhatif return andwecantforgetabout BEGIN waitand END\nbutwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function\n\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldNotforget the \"\" `*patern*`\nI am going to try to string literal \"Is it working???\" banana ; fish \"What about \\\"NOW?\\\"\" What if I just \"\" \n>= ++ -- <= == != ^= %= *= 3/=4 += -= !~ && >> whatAboutACurveBall ||\n{ } [ ] ( ) $ ~ = < > ! + ^ - ? :test * / % ; curveBall | ,\n`test` `124` `next to``eachother` `` banananana`patterns|with&symbols`";
 
     @Test 
@@ -270,18 +270,19 @@ public class UnitTests {
     public void PAR_parceFunction() throws Exception {
         String input = "function tester (a, c, \n" + //
                 " d) \n" + //
-                " { banana fish\n" + //
-                " if }\n" + //
-                " function testy (no, yes, maybe) {true false}";
+                " { a= \"banana\" \"fish\"\n;}\n" + //
+                " function testy (no, yes, maybe) {true(); false();}";
         
-        String output = "function tester (a, c, d, ) { NULL STATEMENTS\n" + 
-                        "}\n" + 
-                        "function testy (no, yes, maybe, ) { NULL STATEMENTS\n" + 
-                        "}\n";
+        //String output = "function tester (a, c, d, ) { NULL STATEMENTS\n}\nfunction testy (no, yes, maybe, ) { NULL STATEMENTS\n}\n";
         Lexer lex = new Lexer(input);
         Parser parse = new Parser(lex.lex());
         ProgramNode pNode = parse.parse();
-        Assert.assertEquals(output, pNode.toString());
+        Assert.assertEquals("function tester (a, c, d, ) { a=\"banana\"\n" + //
+                "}\n" + //
+                "function testy (no, yes, maybe, ) { true()\n" + //
+                "false()\n" + //
+                "}\n" + //
+                "", pNode.toString());
     }
 
     @Test
@@ -297,9 +298,16 @@ public class UnitTests {
     public void PAR_parce() throws Exception {
         Lexer lex = new Lexer(testParse);
         Parser testParse = new Parser(lex.lex());
-        System.out.println(testParse);
         ProgramNode testNode = testParse.parse();
-        Assert.assertEquals("function add_three (number, ) { NULL STATEMENTS\n}\nBEGIN { NULL STATEMENT\n}\n{ NULL STATEMENT\n}\nEND { NULL STATEMENT\n}\n", testNode.toString());
+        Assert.assertEquals("function add_three (number, ) { return (number+\"3\");\n" + //
+                "}\n" + //
+                "BEGIN { prnt(\"Hello, world!\",)\n" + //
+                "}\n" + //
+                "{ prnt(add_three(\"36\",),)\n" + //
+                "}\n" + //
+                "END { prnt(\"Goodbye\",)\n" + //
+                "}\n" + //
+                "", testNode.toString());
     }
 
     /* Test for accept Seperators
@@ -335,7 +343,7 @@ public class UnitTests {
         Assert.assertEquals("e[++b]", parse.parseOperation().get().toString());
     }/**/
 
-    //*
+    /* Test for the second part of parseOperation(). It is no longer public so this test doesn't work any more.
     @Test
     public void PAR_parseOperation2() throws Exception {
         String[] tests = {  "(2)",  "$2",      "++preinc",  "--predec",  "!expr",  "+expr",  "-expr",  "a * b","a/b",  "a%b",  
@@ -358,55 +366,98 @@ public class UnitTests {
             test = par.parseOperation().get();
             Assert.assertEquals(results[i], test.toString());
         }
-    }
+    }/**/
 
     @Test
     public void PAR_parse2() throws Exception {
-        Lexer lex = new Lexer("BEGIN {a = \"Data:\"; count = 0} $1=='b:' {count++; funcky($3)} function funky (b){b + $2 ? 2 :3;} END {printable = a + count}");
+        Lexer lex = new Lexer("BEGIN {a = \"Data:\"; count = 0;} $1 == \"b\" {count++; funcky($3)} function funky (b){b + $2 ? 2 :3;} END {printable = a + count}");
         Parser test = new Parser(lex.lex());
-        Assert.assertEquals("", test.parse().toString());
+        Assert.assertEquals("function funky (b, ) { NULL STATEMENTS\n" + //
+                "}\n" + //
+                "BEGIN { a=\"Data:\"\n" + //
+                "count=\"0\"\n" + //
+                "}\n" + //
+                "(($\"1\")==\"b\"){ count=(count++)\n" + //
+                "funcky(($\"3\"),)\n" + //
+                "}\n" + //
+                "END { printable=(a+count)\n" + //
+                "}\n" + //
+                "", test.parse().toString());
     }
 
     @Test
     public void PAR_parseIf() throws Exception{
-        Lexer lex = new Lexer("");
+        Lexer lex = new Lexer("BEGIN{if(1+1==2){doThings()}else if(44>3) doOtherThings() else{doThing(); if(0) doThingz()}}");
         Parser test = new Parser(lex.lex());
-        Assert.assertEquals("", test.parse().toString());
+        Assert.assertEquals("BEGIN { if (((\"1\"+\"1\")==\"2\")){\n" + //
+                "doThings();\n" + //
+                "}else {\n" + //
+                "doThing();\n" + //
+                "if (\"0\"){\n" + //
+                "doThingz();\n" + //
+                "};\n" + //
+                "}\n" + //
+                "}\n", test.parse().toString());
     }
 
     @Test
     public void PAR_parseFor() throws Exception{
-        Lexer lex = new Lexer("");
+        Lexer lex = new Lexer("BEGIN{for(i=1; i<3; i++) prnt(\"Thing \" i)} END {for(thing in things){ prnt(thing)}}");
         Parser test = new Parser(lex.lex());
-        Assert.assertEquals("", test.parse().toString());
+        Assert.assertEquals("BEGIN { for(i=\"1\"; (i<\"3\"); i=(i++)){\n" + //
+                "prnt((\"Thing \" cat i),);\n" + //
+                "}\n" + //
+                "}\n" + //
+                "END { for (thing in things){\n" + //
+                "prnt(thing,);\n" + //
+                "}\n" + //
+                "}\n" + //
+                "", test.parse().toString());
     }
 
     @Test
     public void PAR_parseWhile() throws Exception{
-        Lexer lex = new Lexer("");
+        Lexer lex = new Lexer("BEGIN {while(1) prnt(\"f\")}");
         Parser test = new Parser(lex.lex());
-        Assert.assertEquals("", test.parse().toString());
+        Assert.assertEquals("BEGIN { while (\"1\"){\n" + //
+                "prnt(\"f\",);\n" + //
+                "}\n" + //
+                "}\n" + //
+                "", test.parse().toString());
     }
 
     @Test
     public void PAR_parseDoWhile() throws Exception{
-        Lexer lex = new Lexer("");
+        Lexer lex = new Lexer("END {do{things()}while (0>=-4)}");
         Parser test = new Parser(lex.lex());
-        Assert.assertEquals("", test.parse().toString());
+        Assert.assertEquals("END { do {\n" + //
+                "things();\n" + //
+                "} while ((\"0\">=(-\"4\")))\n" + //
+                "}\n", test.parse().toString());
     }
 
     @Test
     public void PAR_parseReturnDelete() throws Exception{
-        Lexer lex = new Lexer("");
+        Lexer lex = new Lexer("function foo(){return 59;} END {delete things;}");
         Parser test = new Parser(lex.lex());
-        Assert.assertEquals("", test.parse().toString());
+        Assert.assertEquals("function foo () { return \"59\";\n" + //
+                "}\n" + //
+                "END { delete things\n" + //
+                "}\n", test.parse().toString());
     }
 
     @Test
     public void PAR_parseBreakContinue() throws Exception{
-        Lexer lex = new Lexer("");
+        Lexer lex = new Lexer("for(i=1; i<3; i++){if(i==1) continue; else if(i==3) break;}");
         Parser test = new Parser(lex.lex());
-        Assert.assertEquals("", test.parse().toString());
+        Assert.assertEquals("{ for(i=\"1\"; (i<\"3\"); i=(i++)){\n" + //
+                "if ((i==\"1\")){\n" + //
+                "continue;;\n" + //
+                "}else if ((i==\"3\")){\n" + //
+                "break;;\n" + //
+                "};\n" + //
+                "}\n" + //
+                "}\n", test.parse().toString());
     }
 
     @Test

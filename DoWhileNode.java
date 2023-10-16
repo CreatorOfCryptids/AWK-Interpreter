@@ -2,10 +2,10 @@ import java.util.LinkedList;
 
 public class DoWhileNode extends StatementNode{
 
-    private OperationNode condition;
+    private Node condition;
     private LinkedList<StatementNode> statements;
     
-    DoWhileNode(OperationNode condition, LinkedList<StatementNode> statements){
+    DoWhileNode(Node condition, LinkedList<StatementNode> statements){
         this.condition = condition;
         this.statements = statements;
     }

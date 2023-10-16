@@ -3,7 +3,7 @@ import java.util.Optional;
 
 public class IfNode extends StatementNode{
     
-    private Optional<OperationNode> condition;
+    private Optional<Node> condition;
     private LinkedList<StatementNode> statements;
     private Optional<IfNode> next;
 
@@ -12,7 +12,7 @@ public class IfNode extends StatementNode{
      * @param condition
      * @param statements
      */
-    IfNode(OperationNode condition, LinkedList<StatementNode> statements){
+    IfNode(Node condition, LinkedList<StatementNode> statements){
         this.condition = Optional.of(condition);
         this.statements = statements;
         this.next = Optional.empty();
@@ -24,7 +24,7 @@ public class IfNode extends StatementNode{
      * @param statements
      * @param next
      */
-    IfNode(OperationNode condition, LinkedList<StatementNode> statements, IfNode next){
+    IfNode(Node condition, LinkedList<StatementNode> statements, IfNode next){
         this.condition = Optional.of(condition);
         this.statements = statements;
         this.next = Optional.of(next);
@@ -51,7 +51,7 @@ public class IfNode extends StatementNode{
         retval += "}";
         // print out the next if statement if it exists.
         if (next.isPresent())
-            retval += "else " + next.toString();
+            retval += "else " + next.get().toString();
         return retval;
     }
 }
