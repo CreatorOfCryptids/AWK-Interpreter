@@ -25,7 +25,7 @@ public class Parser {
             acceptSeperators();
             if (parseFunction(pNode)){}
             else if (parseAction(pNode)){}
-            //* There's a bug that causes an infinite loop if you add an extra '}' at the end of the input, and I was trying to fix it.
+            /* There's a bug that causes an infinite loop if you add an extra '}' at the end of the input, and I was trying to fix it.
             else if (h.matchAndRemove(Token.Type.RCURLY).isPresent())
                 throw new Exception("Unexpected '}' found at " + h.getErrorPosition());
             //*/
@@ -145,7 +145,8 @@ public class Parser {
             Optional<StatementNode> temp = parseStatement();
             if (temp.isPresent())
                 statementList.add(temp.get());
-            
+            else 
+                throw new Exception("Expected a statement at or after " + h.getErrorPosition());
         }
         acceptSeperators();
         return statementList;
