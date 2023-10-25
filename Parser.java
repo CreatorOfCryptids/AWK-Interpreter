@@ -745,7 +745,7 @@ public class Parser {
             retval = new OperationNode(temp, OperationNode.Operation.PREDEC);
             retval = new AssignmentNode(temp, retval);
         }
-        else if (// I think this might be the ugliest code I've ever writen.
+        else if (//TODO I think this might be the ugliest code I've ever writen.
                     h.moreTokens() && 
                     (
                         (// Check for user made functions
