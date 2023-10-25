@@ -22,7 +22,7 @@ public class UnitTests {
     "\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldnotforget the\"\" `*patern*`";
     String desiredOutput2 = "";
     String testParse = 
-            "function add_three (number) {\nreturn number + 3\n}\nBEGIN {\nprnt(\"Hello, world!\")\n}\n{\nprnt(add_three(36))     # Outputs '''39'''\n}\nEND {\nprnt(\"Goodbye\")\n}";
+            "function add_three (number) {\nreturn number + 3\n}\nBEGIN {\nprint(\"Hello, world!\")\n}\n{\nprint(add_three(36))     # Outputs '''39'''\n}\nEND {\nprint(\"Goodbye\")\n}";
     String testTH = "test for test while hello test do test break examin if whatabout continue tryAn else butwhatif return andwecantforgetabout BEGIN waitand END\nbutwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function\n\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldNotforget the \"\" `*patern*`\nI am going to try to string literal \"Is it working???\" banana ; fish \"What about \\\"NOW?\\\"\" What if I just \"\" \n>= ++ -- <= == != ^= %= *= 3/=4 += -= !~ && >> whatAboutACurveBall ||\n{ } [ ] ( ) $ ~ = < > ! + ^ - ? :test * / % ; curveBall | ,\n`test` `124` `next to``eachother` `` banananana`patterns|with&symbols`";
 
     @Test 
@@ -301,11 +301,11 @@ public class UnitTests {
         ProgramNode testNode = testParse.parse();
         Assert.assertEquals("function add_three (number, ) { return (number+\"3\");\n" + //
                 "}\n" + //
-                "BEGIN { prnt(\"Hello, world!\",)\n" + //
+                "BEGIN { print(\"Hello, world!\",)\n" + //
                 "}\n" + //
-                "{ prnt(add_three(\"36\",),)\n" + //
+                "{ print(add_three(\"36\",),)\n" + //
                 "}\n" + //
-                "END { prnt(\"Goodbye\",)\n" + //
+                "END { print(\"Goodbye\",)\n" + //
                 "}\n" + //
                 "", testNode.toString());
     }
@@ -402,14 +402,14 @@ public class UnitTests {
 
     @Test
     public void PAR_parseFor() throws Exception{
-        Lexer lex = new Lexer("BEGIN{for(i=1; i<3; i++) prnt(\"Thing \" i)} END {for(thing in things){ prnt(thing)}}");
+        Lexer lex = new Lexer("BEGIN{for(i=1; i<3; i++) print \"Thing \" i} END {for(thing in things){ print(thing)}}");
         Parser test = new Parser(lex.lex());
         Assert.assertEquals("BEGIN { for(i=\"1\"; (i<\"3\"); i=(i++)){\n" + //
-                "prnt((\"Thing \" cat i),);\n" + //
+                "print((\"Thing \" cat i),);\n" + //
                 "}\n" + //
                 "}\n" + //
                 "END { for (thing in things){\n" + //
-                "prnt(thing,);\n" + //
+                "print(thing,);\n" + //
                 "}\n" + //
                 "}\n" + //
                 "", test.parse().toString());
@@ -417,10 +417,10 @@ public class UnitTests {
 
     @Test
     public void PAR_parseWhile() throws Exception{
-        Lexer lex = new Lexer("BEGIN {while(1) prnt(\"f\")}");
+        Lexer lex = new Lexer("BEGIN {while(1) print(\"f\")}");
         Parser test = new Parser(lex.lex());
         Assert.assertEquals("BEGIN { while (\"1\"){\n" + //
-                "prnt(\"f\",);\n" + //
+                "print(\"f\",);\n" + //
                 "}\n" + //
                 "}\n", test.parse().toString());
     }

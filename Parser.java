@@ -119,8 +119,7 @@ public class Parser {
     private BlockNode parseBlock() throws Exception{
         // Take in the operation. If there was a Begin or END statement, this will just skip to the statements.
         Optional<Node> condition = parseOperation();
-        LinkedList<StatementNode> statementList = new LinkedList<StatementNode>();
-        statementList = parseStatements();
+        LinkedList<StatementNode> statementList = parseStatements();
         return new BlockNode(condition, statementList);
     }
 
@@ -386,22 +385,98 @@ public class Parser {
      * @throws Exception
      */
     private Optional<StatementNode> parseFunctionCall()throws Exception{
-        String name = h.matchAndRemove(Token.Type.WORD).get().getValue();
-
-        h.matchAndRemove(Token.Type.LPAREN);    // Already checked for the '(' before calling the parseFunctionCall().
-
         LinkedList<Node> parameters = new LinkedList<>();
-        // This should not be replaced with parseStatements, because this takes parameters, not statements.
-        while(h.moreTokens() && h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
-            parameters.add(parseOperation().get());
-            // If there isn't a comma after a parameter, then the next token should be an RPAREN.
-            if(h.matchAndRemove(Token.Type.COMMA).isEmpty())
-                if(h.moreTokens() && h.peek().get().getType() != Token.Type.RPAREN)
-                    throw new Exception("Expected a ')' after " + h.getErrorPosition());
-        }
 
-        FunctionCallNode retval = new FunctionCallNode(name, parameters);
-        return Optional.of(retval);
+        if(h.matchAndRemove(Token.Type.PRINT).isPresent()){
+            h.matchAndRemove(Token.Type.LPAREN);    // the parenthesis are optional, so remove them if they are present.
+            while(!acceptSeperators() && h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
+                Optional<Node> tempNode= parseOperation();
+                if (tempNode.isPresent())
+                    parameters.add(tempNode.get());
+                else
+                    //throw new Exception("Expected an operation at " + h.getErrorPosition());
+                    break;
+            }
+            FunctionCallNode retval = new FunctionCallNode("print", parameters);
+            return Optional.of(retval);
+        }
+        else if(h.matchAndRemove(Token.Type.PRINTF).isPresent()){
+            h.matchAndRemove(Token.Type.LPAREN);    // the parenthesis are optional, so remove them if they are present.
+            while(!acceptSeperators() && h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
+                Optional<Node> tempNode= parseOperation();
+                if (tempNode.isPresent())
+                    parameters.add(tempNode.get());
+                else
+                    break;
+            }
+            FunctionCallNode retval = new FunctionCallNode("printf", parameters);
+            return Optional.of(retval);
+        }
+        else if(h.matchAndRemove(Token.Type.EXIT).isPresent()){
+            h.matchAndRemove(Token.Type.LPAREN);    // the parenthesis are optional, so remove them if they are present.
+            while(!acceptSeperators() && h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
+                Optional<Node> tempNode= parseOperation();
+                if (tempNode.isPresent())
+                    parameters.add(tempNode.get());
+                else
+                    break;
+            }
+            FunctionCallNode retval = new FunctionCallNode("exit", parameters);
+            return Optional.of(retval);
+        }
+        else if(h.matchAndRemove(Token.Type.GETLINE).isPresent()){
+            h.matchAndRemove(Token.Type.LPAREN);    // the parenthesis are optional, so remove them if they are present.
+            while(!acceptSeperators() && h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
+                Optional<Node> tempNode= parseOperation();
+                if (tempNode.isPresent())
+                    parameters.add(tempNode.get());
+                else
+                    break;
+            }
+            FunctionCallNode retval = new FunctionCallNode("getline", parameters);
+            return Optional.of(retval);
+        }
+        else if(h.matchAndRemove(Token.Type.NEXTFILE).isPresent()){
+            h.matchAndRemove(Token.Type.LPAREN);    // the parenthesis are optional, so remove them if they are present.
+            while(!acceptSeperators() && h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
+                Optional<Node> tempNode= parseOperation();
+                if (tempNode.isPresent())
+                    parameters.add(tempNode.get());
+                else
+                    break;
+            }
+            FunctionCallNode retval = new FunctionCallNode("nextfile", parameters);
+            return Optional.of(retval);
+        }
+        else if(h.matchAndRemove(Token.Type.NEXT).isPresent()){
+            h.matchAndRemove(Token.Type.LPAREN);    // the parenthesis are optional, so remove them if they are present.
+            while(!acceptSeperators() && h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
+                Optional<Node> tempNode= parseOperation();
+                if (tempNode.isPresent())
+                    parameters.add(tempNode.get());
+                else
+                    break;
+            }
+            FunctionCallNode retval = new FunctionCallNode("next", parameters);
+            return Optional.of(retval);
+        }
+        else{
+            String name = h.matchAndRemove(Token.Type.WORD).get().getValue();
+
+            h.matchAndRemove(Token.Type.LPAREN);    // Already checked for the '(' before calling the parseFunctionCall().
+
+            // This should not be replaced with parseStatements, because this takes parameters, not statements.
+            while(h.moreTokens() && h.matchAndRemove(Token.Type.RPAREN).isEmpty()){
+                parameters.add(parseOperation().get());
+                // If there isn't a comma after a parameter, then the next token should be an RPAREN.
+                if(h.matchAndRemove(Token.Type.COMMA).isEmpty())
+                    if(h.moreTokens() && h.peek().get().getType() != Token.Type.RPAREN)
+                        throw new Exception("Expected a ')' after " + h.getErrorPosition());
+            }
+
+            FunctionCallNode retval = new FunctionCallNode(name, parameters);
+            return Optional.of(retval);
+        }
     }
 
     /**
@@ -670,7 +745,28 @@ public class Parser {
             retval = new OperationNode(temp, OperationNode.Operation.PREDEC);
             retval = new AssignmentNode(temp, retval);
         }
-        else if (((h.moreTokens() && h.peek(1).isPresent()) && (h.peek().get().getType() == Token.Type.WORD && h.peek(1).get().getType() == Token.Type.LPAREN)))
+        else if (// I think this might be the ugliest code I've ever writen.
+                    h.moreTokens() && 
+                    (
+                        (// Check for user made functions
+                            h.peek(1).isPresent() && // Make sure that the next two tokens exist for peeking.
+                            (
+                                h.peek().get().getType() == Token.Type.WORD && 
+                                // Checking for the parentesis because if its a word by itself, then it shouldn't be parsed as a function.
+                                h.peek(1).get().getType() == Token.Type.LPAREN
+                            )
+                        ) 
+                        || 
+                        (// Check for built in functions.
+                            h.peek().get().getType() == Token.Type.PRINT || 
+                            h.peek().get().getType() == Token.Type.PRINTF ||
+                            h.peek().get().getType() == Token.Type.GETLINE || 
+                            h.peek().get().getType() == Token.Type.EXIT ||
+                            h.peek().get().getType() == Token.Type.NEXTFILE || 
+                            h.peek().get().getType() == Token.Type.NEXT
+                        )
+                    )
+                )// I heard you liked nested if statements so i put a nest in your nest in your nest so you can if while you if while you if.
             retval = parseFunctionCall().get();
         else{// If it's none of the above, then it must be a variable.
             Optional<Node> temp = parseLValue();
