@@ -745,28 +745,7 @@ public class Parser {
             retval = new OperationNode(temp, OperationNode.Operation.PREDEC);
             retval = new AssignmentNode(temp, retval);
         }
-        else if (//TODO I think this might be the ugliest code I've ever writen.
-                    h.moreTokens() && 
-                    (
-                        (// Check for user made functions
-                            h.peek(1).isPresent() && // Make sure that the next two tokens exist for peeking.
-                            (
-                                h.peek().get().getType() == Token.Type.WORD && 
-                                // Checking for the parentesis because if its a word by itself, then it shouldn't be parsed as a function.
-                                h.peek(1).get().getType() == Token.Type.LPAREN
-                            )
-                        ) 
-                        || 
-                        (// Check for built in functions.
-                            h.peek().get().getType() == Token.Type.PRINT || 
-                            h.peek().get().getType() == Token.Type.PRINTF ||
-                            h.peek().get().getType() == Token.Type.GETLINE || 
-                            h.peek().get().getType() == Token.Type.EXIT ||
-                            h.peek().get().getType() == Token.Type.NEXTFILE || 
-                            h.peek().get().getType() == Token.Type.NEXT
-                        )
-                    )
-                )// I heard you liked nested if statements so i put a nest in your nest in your nest so you can if while you if while you if.
+        else if (isFunctionCall())
             retval = parseFunctionCall().get();
         else{// If it's none of the above, then it must be a variable.
             Optional<Node> temp = parseLValue();
@@ -786,6 +765,51 @@ public class Parser {
         }
 
         return Optional.of(retval);
+    }
+
+    /**
+     * The isFunctionCall() method.
+     * @return A boolean if the token stream can be parsed as a function call.
+     */
+    private boolean isFunctionCall(){
+        /* The 21 line boolean expression that I was using before:
+        I think this might be the ugliest code I've ever writen.
+        The goal is to determine if it follows the form of either a user defined function or a built in function.
+        h.moreTokens() && // Make sure that peeking won't return empty and cause an error.
+        (
+            (// Check for user made functions
+                h.peek(1).isPresent() && // Make sure that the next two tokens exist for peeking.
+                (
+                    h.peek().get().getType() == Token.Type.WORD && 
+                    // Checking for the parentesis because if its a word by itself, then it shouldn't be parsed as a function.
+                    h.peek(1).get().getType() == Token.Type.LPAREN
+                )
+            )
+            || 
+            (// Check for built in functions.
+                h.peek().get().getType() == Token.Type.PRINT || 
+                h.peek().get().getType() == Token.Type.PRINTF ||
+                h.peek().get().getType() == Token.Type.GETLINE || 
+                h.peek().get().getType() == Token.Type.EXIT ||
+                h.peek().get().getType() == Token.Type.NEXTFILE || 
+                h.peek().get().getType() == Token.Type.NEXT
+            )
+        )
+        */
+        if(h.moreTokens() == false) // Make sure that peeking won't return empty and cause an error.
+            return false;
+        else if (h.peek().isPresent() && // Make sure that the next two tokens exist for peeking.
+                (h.peek().get().getType() == Token.Type.WORD && 
+                // Checking for the parentesis because if its a word by itself, then it shouldn't be parsed as a function.
+                h.peek(1).get().getType() == Token.Type.LPAREN))
+            return true;
+        // Check for built in functions.
+        else if (h.peek().get().getType() == Token.Type.PRINT || h.peek().get().getType() == Token.Type.PRINTF ||
+                h.peek().get().getType() == Token.Type.GETLINE || h.peek().get().getType() == Token.Type.EXIT ||
+                h.peek().get().getType() == Token.Type.NEXTFILE || h.peek().get().getType() == Token.Type.NEXT)
+            return true;
+        else
+            return false;
     }
 
     /**
