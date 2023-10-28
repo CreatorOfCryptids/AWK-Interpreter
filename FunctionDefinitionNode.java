@@ -29,4 +29,8 @@ public class FunctionDefinitionNode extends Node{
 
         return retVal + "}";
     }
+
+    public String getName(){
+        return name;
+    }
 }

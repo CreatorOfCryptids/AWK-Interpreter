@@ -1,5 +1,5 @@
 public class InterpreterDataType {
-    String value;
+    private String value;
 
     InterpreterDataType(String value){
         this.value = value;

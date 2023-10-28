@@ -25,6 +25,7 @@ public class UnitTests {
             "function add_three (number) {\nreturn number + 3\n}\nBEGIN {\nprint(\"Hello, world!\")\n}\n{\nprint(add_three(36))     # Outputs '''39'''\n}\nEND {\nprint(\"Goodbye\")\n}";
     String testTH = "test for test while hello test do test break examin if whatabout continue tryAn else butwhatif return andwecantforgetabout BEGIN waitand END\nbutwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function\n\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldNotforget the \"\" `*patern*`\nI am going to try to string literal \"Is it working???\" banana ; fish \"What about \\\"NOW?\\\"\" What if I just \"\" \n>= ++ -- <= == != ^= %= *= 3/=4 += -= !~ && >> whatAboutACurveBall ||\n{ } [ ] ( ) $ ~ = < > ! + ^ - ? :test * / % ; curveBall | ,\n`test` `124` `next to``eachother` `` banananana`patterns|with&symbols`";
 
+    
     @Test 
     public void SH_peek() throws Exception{
         StringHandler testHandler = new StringHandler(testString1);
@@ -515,5 +516,95 @@ public class UnitTests {
         Assert.assertEquals("variable", test.toString());
         test = new VariableReferenceNode("array", new VariableReferenceNode("index"));
         Assert.assertEquals("array[index]", test.toString());
+    }
+
+    @Test
+    public void PAR_builtInFuncitions() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void LM() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void LM_splitAndAssign() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void INTP() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_print() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_printf() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_getline() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_next() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_gsub() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_match() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_sub() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_index() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_length() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_split() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_substr() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_toLower() throws Exception{
+        Assert.assertTrue(false);
+    }
+
+    @Test
+    public void BIFD_toUpper() throws Exception{
+        Assert.assertTrue(false);
     }
 }

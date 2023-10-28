@@ -5,13 +5,13 @@ public class ProgramNode extends Node{
     private LinkedList<Node> beginBlockNodes;
     private LinkedList<Node> endBlockNodes;
     private LinkedList<Node> otherBlockNodes;
-    private LinkedList<Node> functionNodes;
+    private LinkedList<FunctionDefinitionNode> functionNodes;
 
     public ProgramNode(){
         beginBlockNodes = new LinkedList<Node>();
         endBlockNodes = new LinkedList<Node>();
         otherBlockNodes = new LinkedList<Node>();
-        functionNodes = new LinkedList<Node>();
+        functionNodes = new LinkedList<FunctionDefinitionNode>();
     }
 
     public void add(FunctionDefinitionNode node){
@@ -49,5 +49,9 @@ public class ProgramNode extends Node{
             retVal += "END " + n.toString() + '\n';
         }
         return retVal;
+    }
+
+    LinkedList<FunctionDefinitionNode> getFunctionNodes() {
+        return functionNodes;
     }
 }
