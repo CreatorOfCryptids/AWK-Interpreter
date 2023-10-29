@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class Interpreter {
 
@@ -44,14 +46,14 @@ public class Interpreter {
             for(HashMap.Entry<String, InterpreterDataType> entry: hm.entrySet()){
                 System.out.print(entry.getValue());
             }
-            return "1";// No idea what we're supposed to do here
+            return "true";// TODO: No idea what we're supposed to do here
         };
         functions.put("print", toBIFDN("print", temp, true));
         //TODO: printf
         temp = (hm)->{
             for (int i=0; i<hm.size(); i++)
                 System.out.printf(hm.get(toString(i)).getValue()); 
-            return "true";  // No idea what we're supposed to do here
+            return "true";  //TODO: No idea what we're supposed to do here
         };
         functions.put("printf", toBIFDN("printf", temp, true));
         // getline
@@ -66,12 +68,18 @@ public class Interpreter {
         functions.put("next", toBIFDN("next", temp, false));
         // gsub
         temp = (hm)->{
-            if(hm.containsKey("target")){
-                return hm.get("target").getValue().replaceAll(hm.get("regexp").getValue(), hm.get("replacement").getValue());
-            }
-            else{
-                return hm.get("$0").getValue().replaceAll(hm.get("regexp").getValue(), hm.get("replacement").getValue());
-            }
+            Pattern regex = Pattern.compile(hm.get("regexp").getValue());
+            Matcher matcher;
+            int replacements = 0;
+            if(hm.containsKey("target"))
+                matcher = regex.matcher(hm.get("target").getValue());
+            else
+                matcher = regex.matcher(hm.get("$0").getValue());
+            while (matcher.matches()){
+                    hm.get("target").getValue().replace(matcher.group(1), hm.get("replacement").getValue());
+                    replacements++;
+                }    
+                return toString(replacements);
         };
         functions.put("gsub", toBIFDN("gsub", temp, true));
         // index
@@ -85,26 +93,26 @@ public class Interpreter {
                 return toString(globalVars.get("$0").getValue().length());
             }  
             else{
-                return toString(hm.get("0").getValue().length());
+                return toString(hm.get("string").getValue().length());
             }
         };
         functions.put("length", toBIFDN("length", temp, true));
         //TODO: match return the matched portion of the string
         temp = (hm)->{
+            Pattern regex = Pattern.compile(hm.get("regexp").getValue());
+            Matcher matcher = regex.matcher(hm.get("string").getValue());
             if(hm.containsKey("array")){
-                int retval = hm.get("string").getValue().indexOf(hm.get("regexp").getValue(), 0);
-                globalVars.replace(hm.get("array").getValue(), );
-                return toString(retval+1);  // Add one because AWK returns "0" for not found, and "1" if found at first index.
+                globalVars.replace(hm.get("array").getValue(), toIDT(hm.get("String").getValue().substring(matcher.start(), matcher.end())));
+                return toString(matcher.start()+1);  // Add one because AWK returns "0" for not found, and "1" if found at first index.
             }
             else{
-                int retval = hm.get("string").getValue().indexOf(hm.get("regexp").getValue(), 0);
-                return toString(retval+1);  // Add one because AWK returns "0" for not found, and "1" if found at first index.
+                return toString(matcher.start()+1);  // Add one because AWK returns "0" for not found, and "1" if found at first index.
             }
         };
         functions.put("match", toBIFDN("match", temp, true));
         // split
-        temp = (hm)->{
-
+        temp = (hm)->{//(string, array [, fieldsep [, seps ]])
+            
         };
         functions.put("split", toBIFDN("split", temp, false));
         // sprintf
