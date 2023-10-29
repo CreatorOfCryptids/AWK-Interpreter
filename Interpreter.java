@@ -47,7 +47,7 @@ public class Interpreter {
             return "1";// No idea what we're supposed to do here
         };
         functions.put("print", toBIFDN("print", temp, true));
-        // TODO: printf
+        //TODO: printf
         temp = (hm)->{
             for (int i=0; i<hm.size(); i++)
                 System.out.printf(hm.get(toString(i)).getValue()); 
@@ -89,7 +89,7 @@ public class Interpreter {
             }
         };
         functions.put("length", toBIFDN("length", temp, true));
-        // match
+        //TODO: match return the matched portion of the string
         temp = (hm)->{
             if(hm.containsKey("array")){
                 int retval = hm.get("string").getValue().indexOf(hm.get("regexp").getValue(), 0);
