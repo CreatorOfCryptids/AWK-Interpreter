@@ -38,12 +38,100 @@ public class Interpreter {
         for(FunctionDefinitionNode n : functionList)
             functions.put(n.getName(), n);
 
+        //print
         Function<HashMap<String, InterpreterDataType>, String> temp;
-        temp = (hm)->{String retval; for(HashMap.Entry<String, InterpreterDataType> entry: hm.entrySet())
-                                                                System.out.print(entry); return};
+        temp = (hm)->{
+            for(HashMap.Entry<String, InterpreterDataType> entry: hm.entrySet()){
+                System.out.print(entry.getValue());
+            }
+            return "1";// No idea what we're supposed to do here
+        };
         functions.put("print", toBIFDN("print", temp, true));
-        
-        
+        // TODO: printf
+        temp = (hm)->{
+            for (int i=0; i<hm.size(); i++)
+                System.out.printf(hm.get(toString(i)).getValue()); 
+            return "true";  // No idea what we're supposed to do here
+        };
+        functions.put("printf", toBIFDN("printf", temp, true));
+        // getline
+        temp = (hm)->{
+            lm.splitAndAssign(); return "true";
+        };
+        functions.put("getline", toBIFDN("getline", temp, false));
+        // next
+        temp = (hm)->{
+            lm.splitAndAssign(); return "true";
+        };
+        functions.put("next", toBIFDN("next", temp, false));
+        // gsub
+        temp = (hm)->{
+            if(hm.containsKey("target")){
+                return hm.get("target").getValue().replaceAll(hm.get("regexp").getValue(), hm.get("replacement").getValue());
+            }
+            else{
+                return hm.get("$0").getValue().replaceAll(hm.get("regexp").getValue(), hm.get("replacement").getValue());
+            }
+        };
+        functions.put("gsub", toBIFDN("gsub", temp, true));
+        // index
+        temp = (hm)->{
+            return toString(hm.get("in").getValue().indexOf(hm.get("find").getValue()));
+        };
+        functions.put("index", toBIFDN("index", temp, false));
+        // length
+        temp = (hm)->{
+            if(hm.isEmpty()){
+                return toString(globalVars.get("$0").getValue().length());
+            }  
+            else{
+                return toString(hm.get("0").getValue().length());
+            }
+        };
+        functions.put("length", toBIFDN("length", temp, true));
+        // match
+        temp = (hm)->{
+            if(hm.containsKey("array")){
+                int retval = hm.get("string").getValue().indexOf(hm.get("regexp").getValue(), 0);
+                globalVars.replace(hm.get("array").getValue(), );
+                return toString(retval+1);  // Add one because AWK returns "0" for not found, and "1" if found at first index.
+            }
+            else{
+                int retval = hm.get("string").getValue().indexOf(hm.get("regexp").getValue(), 0);
+                return toString(retval+1);  // Add one because AWK returns "0" for not found, and "1" if found at first index.
+            }
+        };
+        functions.put("match", toBIFDN("match", temp, true));
+        // split
+        temp = (hm)->{
+
+        };
+        functions.put("split", toBIFDN("split", temp, false));
+        // sprintf
+        temp = (hm)->{
+
+        };
+        functions.put("sprintf", toBIFDN("sprintf", temp, false));
+        // sub
+        temp = (hm)->{
+
+        };
+        functions.put("sub", toBIFDN("sub", temp, false));
+        // substr
+        temp = (hm)->{
+
+        };
+        functions.put("substr", toBIFDN("substr", temp, true));
+        // tolower
+        temp = (hm)->{
+            return hm.get("0").getValue().toLowerCase();
+        };
+        functions.put("tolower", toBIFDN("tolower", temp, false));
+        // toupper
+        temp = (hm)->{
+            return hm.get("0").getValue().toUpperCase();
+        };
+        functions.put("toupper", toBIFDN("toupper", temp, false));
     }
     
     class LineManager{
@@ -98,6 +186,14 @@ public class Interpreter {
     }
 
     private BuiltInFunctionDefinitionNode toBIFDN(String name, Function<HashMap<String, InterpreterDataType>, String> foo, boolean variadic){
+        return new BuiltInFunctionDefinitionNode(name, foo, variadic);
+    }
 
+    private String toString(int value){
+        return Integer.toString(value);
+    }
+
+    private String toString(float value){
+        return Float.toString(value);
     }
 }
