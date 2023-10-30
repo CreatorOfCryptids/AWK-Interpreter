@@ -11,31 +11,39 @@ import java.util.regex.Matcher;
 
 public class Interpreter {
 
-    LineManager lm;
-    HashMap<String, InterpreterDataType> globalVars;
-    HashMap<String, FunctionDefinitionNode> functions;
+    // TODO temperary public for testing.
+    public LineManager lm;
+    private HashMap<String, InterpreterDataType> globalVars;
+    private HashMap<String, FunctionDefinitionNode> functions;
 
     Interpreter(ProgramNode pNode, String filePath) throws Exception{
+        globalVars = new HashMap<String, InterpreterDataType>();
         globalVars.put("FS", toIDT(" "));
         globalVars.put("OFMT", toIDT("%.6g"));
         globalVars.put("OFS", toIDT(" "));
         globalVars.put("ORS", toIDT("\n"));
         globalVars.put("FILENAME", toIDT(filePath));
         
-        Path myPath = Paths.get(filePath);
+        
 
-        try{
+        //try{
+            /*
+            Path myPath = Paths.get(fileName);
+            String file = new String(Files.readAllBytes(myPath));
+             */
+            Path myPath = Paths.get(filePath);
             String file = new String(Files.readAllBytes(myPath));
             LinkedList<String> lines = new LinkedList<String>();
             for(String s : file.split("\n"))
                 lines.add(s);
             
             lm = new LineManager(lines);
-        }
+        /*}
         catch(IOException e){
-            lm = new LineManager(new LinkedList<String>());
-        }
-        
+            throw new Exception("TEST: Files didn't work");
+            //lm = new LineManager(new LinkedList<String>());
+        }*/
+        functions = new HashMap<String, FunctionDefinitionNode>();
         LinkedList<FunctionDefinitionNode> functionList = pNode.getFunctionNodes();
         for(FunctionDefinitionNode n : functionList)
             functions.put(n.getName(), n);
@@ -281,7 +289,7 @@ public class Interpreter {
         functions.put("toupper", toBIFDN("toupper", temp, false, args));
     }
     
-    class LineManager{
+    public class LineManager{
         List<String> file;
         int lineNum;
 

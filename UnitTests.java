@@ -519,13 +519,20 @@ public class UnitTests {
     }
 
     @Test
-    public void PAR_builtInFuncitions() throws Exception{
-        Assert.assertTrue(false);
-    }
-
-    @Test
     public void LM() throws Exception{
-        Assert.assertTrue(false);
+        /*String[] testArray = {"1 Dave 78","2 Greta 19023","3 Tod 789","4 Jerry 4","5 Windson 10398264",
+                        "6 Mono 293874","7 Kurby 6","8 Sprimkles 4567","9 Skelington 0","10 Doomslug 765435432"};
+        LinkedList<String> test = new LinkedList<String>();
+        for(String s: testArray)
+            test.add(s);
+        Interpreter.LineManager lm = new LineManager(test);*/
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "test3.txt");
+
+        for(int i = 0; i<10; i++)
+            Assert.assertTrue(inter.lm.splitAndAssign());
+        Assert.assertFalse(inter.lm.splitAndAssign());
     }
 
     @Test
