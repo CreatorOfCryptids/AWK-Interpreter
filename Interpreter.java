@@ -158,7 +158,7 @@ public class Interpreter {
         args = new String[]{"string"};
         functions.put("length", toBIFDN("length", temp, true, args));
         
-        // match
+        // TODO match
         temp = (hm)->{//(string, regexp [, array])
             Pattern regex = Pattern.compile(hm.get("regexp").getValue());
             Matcher matcher = regex.matcher(hm.get("string").getValue());
@@ -176,10 +176,13 @@ public class Interpreter {
         // split
         temp = (hm)->{//(string, array [, fieldsep [, seps ]])
             String string = hm.get("string").getValue();
-            String[] array;
+            String[] array; 
             String seperator = globalVars.get("FS").getValue();
+
+            // Check if the user wants a different seperator.
             if(hm.containsKey("fieldsep"))
                 seperator = hm.get("fieldsep").getValue();
+            
             array = string.split(seperator);
             globalVars.replace(hm.get("array").getValue(), new InterpreterArrayDataType(array));
             return toString(array.length);
@@ -234,9 +237,9 @@ public class Interpreter {
             else
                 return "false";
             for(int i=0; i<array.length; i++)
-                array[i] = IADTarray.getValue(toString(i));
+                array[i] = (String) IADTarray.getValue(toString(i));
 
-            return String.format(hm.get("format").getValue(), (Object) array); 
+            return String.format(hm.get("format").getValue(), (String[]) array); 
         };
         args = new String[]{"format", "array"};
         functions.put("sprintf", toBIFDN("sprintf", temp, true, args));

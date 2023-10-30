@@ -683,11 +683,26 @@ public class UnitTests {
         BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("split");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
-        testmap.put();
+        testmap.put("string", toIDT("Can you seperate these?"));
+        testmap.put("array", toIDT("array"));
 
-        Assert.assertEquals("return value :)", test.testExecute(testmap));
+        Assert.assertEquals("4", test.testExecute(testmap));
     }
 
+    @Test
+    public void BIFD_sprintf() throws Exception{
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("sprintf");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put("array", new InterpreterArrayDataType(new String[]{"test"}));
+        testmap.put("format", toIDT("%s"));
+
+        Assert.assertEquals("test", test.testExecute(testmap));
+    }
+    
     @Test
     public void BIFD_substr() throws Exception{
         Lexer lex = new Lexer("{print $2  \" \"$2}");
