@@ -1,4 +1,6 @@
 import org.junit.Assert;
+
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Optional;
 import org.junit.Test;
@@ -519,6 +521,13 @@ public class UnitTests {
     }
 
     @Test
+    public void INTP() throws Exception{
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");    
+    }
+    
+    @Test
     public void LM() throws Exception{
         /*String[] testArray = {"1 Dave 78","2 Greta 19023","3 Tod 789","4 Jerry 4","5 Windson 10398264",
                         "6 Mono 293874","7 Kurby 6","8 Sprimkles 4567","9 Skelington 0","10 Doomslug 765435432"};
@@ -528,7 +537,7 @@ public class UnitTests {
         Interpreter.LineManager lm = new LineManager(test);*/
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
-        Interpreter inter = new Interpreter(parse.parse(), "test3.txt");
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
 
         for(int i = 0; i<10; i++)
             Assert.assertTrue(inter.lm.splitAndAssign());
@@ -536,82 +545,196 @@ public class UnitTests {
     }
 
     @Test
-    public void LM_splitAndAssign() throws Exception{
-        Assert.assertTrue(false);
-    }
-
-    @Test
-    public void INTP() throws Exception{
-        Assert.assertTrue(false);
-    }
-
-    @Test
     public void BIFD() throws Exception{
-        Assert.assertTrue(false);
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put("0", new InterpreterDataType("return value :)"));
+        var test = new BuiltInFunctionDefinitionNode("testFoo", (hm)->(hm.get("0").getValue()), false, new LinkedList<String>());
+        Assert.assertEquals("return value :)", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_print() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("print");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put("array", new InterpreterArrayDataType(new String[]{"test"}));
+
+        Assert.assertEquals("true", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_printf() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("printf");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put("array", new InterpreterArrayDataType(new String[]{"test"}));
+        testmap.put("format", toIDT("%s"));
+
+        Assert.assertEquals("true", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_getline() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("getline");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        //testmap.put();
+
+        Assert.assertEquals("true", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_next() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("next");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        //testmap.put();
+
+        Assert.assertEquals("true", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_gsub() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("gsub");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put("target", toIDT("@ replace this please ->>@<<- pleeeeeease"));
+        testmap.put("regexp", toIDT("@"));
+        testmap.put("replacement", toIDT("$"));
+
+        Assert.assertEquals("2", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_match() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("match");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put("string", toIDT(" can you find the 1@??????"));
+        testmap.put("regexp", toIDT("[0-9]@*"));
+
+        Assert.assertEquals("", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_sub() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("sub");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put();
+
+        Assert.assertEquals("return value :)", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_index() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("index");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put("find", toIDT("@"));
+        testmap.put("in", toIDT("wheres the @?"));
+
+
+        Assert.assertEquals("11", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_length() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("length");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put("string", toIDT("How long?"));
+
+        Assert.assertEquals("9", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_split() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("split");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put();
+
+        Assert.assertEquals("return value :)", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_substr() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("substr");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put("string", toIDT("this is a test"));
+        testmap.put("start", toIDT(10));
+
+        Assert.assertEquals("test", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_toLower() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("tolower");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put("string", toIDT("make This lOWER"));
+
+        Assert.assertEquals("make this lower", test.testExecute(testmap));
     }
 
     @Test
     public void BIFD_toUpper() throws Exception{
-        Assert.assertTrue(false);
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("toupper");
+
+        HashMap<String, InterpreterDataType> testmap = new HashMap<>();
+        testmap.put("string", toIDT("make this UPPER"));
+
+        Assert.assertEquals("MAKE THIS UPPER", test.testExecute(testmap));
     }
+
+    // Quality of life functions:
+    private InterpreterDataType toIDT(String value){
+        return new InterpreterDataType(value);
+    }
+
+    private InterpreterDataType toIDT(int value){
+        return new InterpreterDataType(Integer.toString(value));
+    }
+
 }

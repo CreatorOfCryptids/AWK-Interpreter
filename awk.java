@@ -10,7 +10,8 @@ public class awk {
         /*if (args != null && args[0] != null)
             fileName = args[0];
         else*/
-            fileName = "test2.txt";
+            //fileName = "test2.txt";
+            fileName = "Example2.awk";
 
         // Open file and pass to the lexer.
         Path myPath = Paths.get(fileName);
@@ -20,7 +21,7 @@ public class awk {
         // Lex.
         LinkedList<Token> list = lex.lex();
 
-        // Parse
+        //* Parse
         Parser parser = new Parser(list);
         ProgramNode program = parser.parse();
 

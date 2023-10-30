@@ -16,4 +16,9 @@ public class BuiltInFunctionDefinitionNode extends FunctionDefinitionNode{
     public boolean getIsVariadic(){
         return isVariadic;
     }
+
+    public String testExecute(HashMap<String, InterpreterDataType> input){
+        String s = execute.apply(input);
+        return s;
+    }
 }

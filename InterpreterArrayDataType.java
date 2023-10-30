@@ -8,6 +8,7 @@ public class InterpreterArrayDataType extends InterpreterDataType{
     }
 
     InterpreterArrayDataType(String[] values){
+        this.values = new HashMap<String, InterpreterDataType>();
         for(int i=0; i<values.length; i++)
             this.values.put(Integer.toString(i), toIDT(values[i]));
     }

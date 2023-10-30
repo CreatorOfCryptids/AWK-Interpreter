@@ -1,4 +1,4 @@
-import java.io.IOException;
+//import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,7 +14,7 @@ public class Interpreter {
     // TODO temperary public for testing.
     public LineManager lm;
     private HashMap<String, InterpreterDataType> globalVars;
-    private HashMap<String, FunctionDefinitionNode> functions;
+    public HashMap<String, FunctionDefinitionNode> functions;
 
     Interpreter(ProgramNode pNode, String filePath) throws Exception{
         globalVars = new HashMap<String, InterpreterDataType>();
@@ -23,6 +23,9 @@ public class Interpreter {
         globalVars.put("OFS", toIDT(" "));
         globalVars.put("ORS", toIDT("\n"));
         globalVars.put("FILENAME", toIDT(filePath));
+        globalVars.put("NF", toIDT(0));
+        globalVars.put("FNR", toIDT(0));
+        globalVars.put("NR", toIDT(0));
         
         
 
@@ -264,7 +267,7 @@ public class Interpreter {
         
         // substr
         temp = (hm)->{//(string, start [, length ])
-            if(!hm.get("length").getValue().equals("")){
+            if(hm.containsKey("length") && !hm.get("length").getValue().equals("")){
                 return hm.get("string").getValue().substring(Integer.parseInt(hm.get("start").getValue()), Integer.parseInt(hm.get("start").getValue())+Integer.parseInt(hm.get("length").getValue()));
             }
             else{
@@ -313,7 +316,7 @@ public class Interpreter {
                 globalVars.remove("$" + i);
 
             // Update NR and FNR
-           int FNR = Integer.parseInt(globalVars.get("FNR").getValue());
+            int FNR = Integer.parseInt(globalVars.get("FNR").getValue());
             globalVars.replace("FNR", toIDT(FNR++));
             int NR = Integer.parseInt(globalVars.get("NR").getValue());
             globalVars.replace("NR", toIDT(NR++));
