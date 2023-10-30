@@ -12,4 +12,8 @@ public class BuiltInFunctionDefinitionNode extends FunctionDefinitionNode{
         execute = foo;
         isVariadic = variadic;
     }
+
+    public boolean getIsVariadic(){
+        return isVariadic;
+    }
 }

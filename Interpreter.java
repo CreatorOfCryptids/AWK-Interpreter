@@ -40,21 +40,29 @@ public class Interpreter {
         for(FunctionDefinitionNode n : functionList)
             functions.put(n.getName(), n);
 
+        initializeBIFDNs();
+    }
+
+    private void initializeBIFDNs(){
         String[] args;  // Using an array of strings to hold the args because it's easier than makeing a LinkedList. It will be changed to a LinkeList in the toBIFDN method.
-        //print
         Function<HashMap<String, InterpreterDataType>, String> temp;
+        
+        //print
         temp = (hm)->{
-             String[] array;
-            InterpreterArrayDataType IADTarray;
+            String[] array; // Stores the array entries to pass to printf
+            InterpreterArrayDataType IADTarray; // Stores the IADT passed to the function.
+            // Make sure that the item passed is an IADT.
             if(hm.get("array") instanceof InterpreterArrayDataType){
                 IADTarray = ((InterpreterArrayDataType)hm.get("array"));
                 array = new String[IADTarray.getSize()];
             }
             else
                 return "false";
+            // Put all the entries into array
             for(int i=0; i<array.length; i++)
                 array[i] = IADTarray.getValue(toString(i));
 
+            // Print them.
             System.out.print(array); 
             return "true";
         };
@@ -63,8 +71,9 @@ public class Interpreter {
         
         //printf
         temp = (hm)->{
-            String[] array;
-            InterpreterArrayDataType IADTarray;
+            String[] array; // Stores the array entries to pass to printf
+            InterpreterArrayDataType IADTarray; // Stores the IADT passed to the function.
+            // Make sure that the item passed is an IADT.
             if(hm.get("array") instanceof InterpreterArrayDataType){
                 IADTarray = ((InterpreterArrayDataType)hm.get("array"));
                 array = new String[IADTarray.getSize()];
@@ -81,33 +90,39 @@ public class Interpreter {
         functions.put("printf", toBIFDN("printf", temp, true, args));
         
         // getline
-        temp = (hm)->{
-            lm.splitAndAssign(); return "true";
-        };
+        temp = (hm)->{lm.splitAndAssign(); return "true";};
         args = new String[]{};
         functions.put("getline", toBIFDN("getline", temp, false, args));
         
         // next
-        temp = (hm)->{
-            lm.splitAndAssign(); return "true";
-        };
+        temp = (hm)->{lm.splitAndAssign(); return "true";};
         args = new String[]{};
         functions.put("next", toBIFDN("next", temp, false, args));
         
         // gsub
         temp = (hm)->{//(regexp, replacement [, target])
             Pattern regex = Pattern.compile(hm.get("regexp").getValue());
-            Matcher matcher;
+            Matcher matcher;    // Initialize here to get a matcher with the chosen target out of the if blocks.
+            String target;
             int replacements = 0;
             // If the target is specificed, search the target instead of the current line.
-            if(hm.containsKey("target"))
+            if(!hm.get("target").getValue().equals("")){ // If the target entry is empty then it wasn't passed to the function.
                 matcher = regex.matcher(hm.get("target").getValue());
-            else
+                target = hm.get("target").getValue();
+            }
+            else{
                 matcher = regex.matcher(hm.get("$0").getValue());
-            while (matcher.matches()){// Replace all the instances of the pattern
-                hm.get("target").getValue().replace(matcher.group(1), hm.get("replacement").getValue());
+                target = globalVars.get("$0").getValue();
+            }
+
+            while (matcher.groupCount()>replacements){// Replace all the instances of the pattern
+                target.replace(matcher.group(replacements), hm.get("replacement").getValue());
                 replacements++;
-            }    
+            }
+            if(!hm.get("target").getValue().equals(""))
+                hm.replace("target", toIDT(target));
+            else
+                globalVars.replace("$0", toIDT(target));
             return toString(replacements);
         };
         args = new String[]{"regexp", "replacement", "target"};
@@ -149,33 +164,81 @@ public class Interpreter {
         
         // split
         temp = (hm)->{//(string, array [, fieldsep [, seps ]])
-            Pattern regex;
+            String string = hm.get("string").getValue();
+            String[] array;
+            String seperator = globalVars.get("FS").getValue();
             if(hm.containsKey("fieldsep"))
-                regex = Pattern.compile(hm.get("feildsep").getValue());
+                seperator = hm.get("fieldsep").getValue();
+            array = string.split(seperator);
+            globalVars.replace(hm.get("array").getValue(), new InterpreterArrayDataType(array));
+            return toString(array.length);
+            
+            /*Pattern regex;  
+            Matcher matcher;
+            LinkedList<String> splitStrings = new LinkedList<String>();
+            LinkedList<String> seperators = new LinkedList<String>();
+            String target = hm.get("string").getValue();
+            int count = 0;
+            
+            // Initialze the regex as either the default feild seperator or the passed feild seperator
+            if(!hm.get("fieldsep").getValue().equals(""))
+                regex = Pattern.compile(hm.get("fieldsep").getValue());
             else
                 regex = Pattern.compile(globalVars.get("FS").getValue());
-            Matcher matcher = regex.matcher(hm.get("string").getValue());
+
+            //Loop thru the target string.
+            matcher = regex.matcher(target);
+            while(matcher.groupCount()<count){
+                splitStrings.add(target.substring(0, matcher.start()));
+                seperators.add(matcher.group(count++));
+            }
+
+            String[] splitStringsArray = (String[]) splitStrings.toArray();
+            globalVars.put(hm.get("array").getValue(), new InterpreterArrayDataType(splitStringsArray));
+
+            
+
+            if(hm.get("seps").getValue().equals("")){
+                String[] seperatorsArray = (String[]) seperators.toArray();
+                globalVars.replace(hm.get("seps").getValue(), new InterpreterArrayDataType(splitStringsArray));
+            }
+
+            return toString(splitStrings.size());*/
+            /*if(!hm.get("feildsep").getValue().equals(""))
+                splitStrings = hm.get("string").getValue().split(hm.get("feildsep").getValue());
+            else
+                splitStrings = hm.get("string").getValue().split(globalVars.get("FS").getValue());*/
         };
         args = new String[]{"string", "array", "fieldsep", "seps"};
         functions.put("split", toBIFDN("split", temp, true, args));
         
         // sprintf
-        temp = (hm)->{//(format, expression1, …)
-            
+        temp = (hm)->{//(format, array)
+            String[] array;
+            InterpreterArrayDataType IADTarray;
+            if(hm.get("array") instanceof InterpreterArrayDataType){
+                IADTarray = ((InterpreterArrayDataType)hm.get("array"));
+                array = new String[IADTarray.getSize()];
+            }
+            else
+                return "false";
+            for(int i=0; i<array.length; i++)
+                array[i] = IADTarray.getValue(toString(i));
+
+            return String.format(hm.get("format").getValue(), (Object) array); 
         };
-        args = new String[]{"format", "expr1", "expr2","expr3","expr4","expr5","expr6","expr7","expr8","expr9","expr10",
-                            "expr11", "expr12","expr13","expr14","expr15","expr16","expr17","expr18","expr19","expr20"};
+        args = new String[]{"format", "array"};
         functions.put("sprintf", toBIFDN("sprintf", temp, true, args));
         
         // sub
         temp = (hm)->{//(regexp, replacement [, target])
             Pattern regex = Pattern.compile(hm.get("regexp").getValue());
-            Matcher matcher;
+            Matcher matcher;   // Initialize here so we can take the chosen target out of the if block.
             int replacements = 0;
             // If a target is specified, search the target instead of the current line.
             if(!hm.get("target").getValue().equals("")){
                 matcher = regex.matcher(hm.get("target").getValue());
-            }  
+            }
             else{
                 matcher = regex.matcher(hm.get("$0").getValue());
             }
@@ -257,6 +320,7 @@ public class Interpreter {
         }
     }
 
+    // Quality of life methods:
     private InterpreterDataType toIDT(String value){
         return new InterpreterDataType(value);
     }
@@ -265,9 +329,9 @@ public class Interpreter {
         return new InterpreterDataType(Integer.toString(value));
     }
 
-    private static InterpreterDataType toIDT(float value){
+    /*private static InterpreterDataType toIDT(float value){
         return new InterpreterDataType(Float.toString(value));
-    }
+    }*/
 
     private static BuiltInFunctionDefinitionNode toBIFDN(String name, Function<HashMap<String, InterpreterDataType>, String> foo, boolean variadic, String[] args){
         LinkedList<String> argsList = new LinkedList<String>();
@@ -276,7 +340,7 @@ public class Interpreter {
         return new BuiltInFunctionDefinitionNode(name, foo, variadic, argsList);
     }
 
-    private static int IDTtoInt(InterpreterDataType idt) throws Exception{
+    /*private static int IDTtoInt(InterpreterDataType idt) throws Exception{
         try{
             int retval = Integer.parseInt(idt.getValue());
             return retval;
@@ -284,13 +348,13 @@ public class Interpreter {
         catch(NumberFormatException e){
             throw new Exception("Expected an Integer, but was actually: " + idt.getValue());
         }
-    }
+    }*/
 
     private static String toString(int value){
         return Integer.toString(value);
     }
 
-    private static String toString(float value){
+    /*private static String toString(float value){
         return Float.toString(value);
-    }
+    }*/
 }

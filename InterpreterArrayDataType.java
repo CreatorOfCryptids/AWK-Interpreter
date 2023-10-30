@@ -7,9 +7,9 @@ public class InterpreterArrayDataType extends InterpreterDataType{
         values = new HashMap<String, InterpreterDataType>();
     }
 
-    InterpreterArrayDataType(String[][] values){
+    InterpreterArrayDataType(String[] values){
         for(int i=0; i<values.length; i++)
-            this.values.put(values[i][0], toIDT(values[i][1]));
+            this.values.put(Integer.toString(i), toIDT(values[i]));
     }
 
     public String getValue(String key){
@@ -18,5 +18,9 @@ public class InterpreterArrayDataType extends InterpreterDataType{
 
     public int getSize(){
         return values.size();
+    }
+
+    public void add(String hash, InterpreterDataType value){
+        values.put(hash, value);
     }
 }
