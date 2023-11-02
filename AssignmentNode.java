@@ -12,4 +12,12 @@ public class AssignmentNode extends StatementNode{
         String retval = target.toString() + "=" + expression.toString();
         return retval;
     }
+
+    public Node getLeft(){
+        return target;
+    }
+
+    public Node getRight(){
+        return expression;
+    }
 }

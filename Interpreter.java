@@ -53,8 +53,71 @@ public class Interpreter {
         initializeBIFDNs();
     }
 
-    private InterpreterDataType getIDT(Node n, Optional<HashMap<String, InterpreterDataType>> localVar){
-        
+    private InterpreterDataType getIDT(Node n, HashMap<String, InterpreterDataType> localVar) throws Exception{
+        InterpreterDataType retval;
+        if(n instanceof AssignmentNode){
+            AssignmentNode assignment = ((AssignmentNode)n);
+            Node left = assignment.getLeft();
+            String variableName;
+            
+            if(left instanceof VariableReferenceNode){
+                variableName = ((VariableReferenceNode) left).getName();
+                retval = getIDT(assignment.getRight(), localVar);
+                localVar.replace(variableName, retval);
+            }
+            else if (left instanceof OperationNode && ((OperationNode)left).getOperation() == OperationNode.Operation.DOLLAR){
+                variableName = '$' + getIDT(((OperationNode)left).getLeft(), localVar).getValue();
+                retval = getIDT(assignment.getRight(), localVar);
+                localVar.replace(variableName, retval);
+            }
+            else
+                throw new Exception("Expected a Variable Reference as left node of Assignment.");
+        }
+        else if(n instanceof ConstantNode){
+            ConstantNode constant = ((ConstantNode) n);
+            retval = toIDT(constant.getValue());
+        }
+        else if(n instanceof FunctionCallNode){
+            FunctionCallNode funcitionCall = ((FunctionCallNode) n);
+            retval = toIDT(runFunctionCall(funcitionCall, localVar));
+        }
+        else if(n instanceof PatternNode){
+            throw new Exception("Unexpected Pattern");
+        }
+        else if(n instanceof TernaryNode){
+            TernaryNode ternary = (TernaryNode) n;
+            InterpreterDataType booleanExpression = getIDT(ternary.getExpression(), localVar);
+            if(toBoolean(booleanExpression)){
+                retval = getIDT(ternary.getTrueCase(), localVar);
+            }
+            else {
+                retval = getIDT(ternary.getFalseCase(), localVar);
+            }
+        }
+        else if(n instanceof VariableReferenceNode){
+
+        }
+        else if(n instanceof OperationNode){
+
+        }
+        return retval;
+    }
+
+    private String runFunctionCall(FunctionCallNode fcn, HashMap<String, InterpreterDataType> localVars){
+        // TODO: later
+        return "";
+    }
+
+    private boolean toBoolean(InterpreterDataType idt){
+        try{
+            float fakeBoolean = Float.parseFloat(idt.getValue());
+            if(fakeBoolean == 0)
+                return false;
+            else return true;
+        }
+        catch(NumberFormatException e){
+            return false;
+        }
     }
 
     private void initializeBIFDNs(){

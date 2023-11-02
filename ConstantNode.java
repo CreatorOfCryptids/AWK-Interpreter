@@ -10,6 +10,10 @@ public class ConstantNode extends Node{
         this.value = token.getValue();
     }
 
+    public String getValue(){
+        return value;
+    }
+
     public String toString() {
         return "\"" + value + "\"";
     }

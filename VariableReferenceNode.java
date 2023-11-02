@@ -30,4 +30,20 @@ public class VariableReferenceNode extends Node{
             retVal += "[" + indexExpression.get().toString() + "]";
         return retVal;
     }   
+
+    public String getName(){
+        return name;
+    }
+
+    public Optional<Node> getIndex(){
+        return indexExpression;
+    }
+
+    /**
+     * The isArray() method.
+     * @return True if it has an array index.
+     */
+    public boolean isArray(){
+        return indexExpression.isPresent();
+    }
 }

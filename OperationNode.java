@@ -43,6 +43,14 @@ public class OperationNode extends Node{
         return operation;
     }
 
+    public Node getLeft(){
+        return left;
+    }
+
+    public Optional<Node> getRight(){
+        return right;
+    }
+
     public String toString() {
         // We put parenthesis around the OperationNode to clearly show the order of operations.
         String retval = "(";

@@ -16,4 +16,15 @@ public class TernaryNode extends Node{
         return retval;
     }
     
+    public Node getExpression(){
+        return boolExpression;
+    }
+
+    public Node getTrueCase(){
+        return trueCase;
+    }
+
+    public Node getFalseCase(){
+        return falseCase;
+    }
 }
