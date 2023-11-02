@@ -13,8 +13,8 @@ public class InterpreterArrayDataType extends InterpreterDataType{
             this.values.put(Integer.toString(i), toIDT(values[i]));
     }
 
-    public String getValue(String key){
-        return values.get(key).getValue();
+    public InterpreterDataType getValue(String key){
+        return values.get(key);
     }
 
     public int getSize(){
@@ -23,5 +23,9 @@ public class InterpreterArrayDataType extends InterpreterDataType{
 
     public void add(String hash, InterpreterDataType value){
         values.put(hash, value);
+    }
+
+    public boolean contains(String key){
+        return values.containsKey(key);
     }
 }

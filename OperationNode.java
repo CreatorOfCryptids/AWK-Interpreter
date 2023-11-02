@@ -51,6 +51,10 @@ public class OperationNode extends Node{
         return right;
     }
 
+    public boolean hasRight(){
+        return right.isPresent();
+    }
+
     public String toString() {
         // We put parenthesis around the OperationNode to clearly show the order of operations.
         String retval = "(";

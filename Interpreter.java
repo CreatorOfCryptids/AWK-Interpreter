@@ -5,7 +5,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
+//import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -95,10 +95,107 @@ public class Interpreter {
             }
         }
         else if(n instanceof VariableReferenceNode){
+            VariableReferenceNode varReference = (VariableReferenceNode) n;
+            if (varReference.isArray()){
+                // Get IDT from HashMaps.
+                InterpreterDataType temp;
 
+                if (localVar.containsKey(varReference.getName()))
+                    temp = localVar.get(varReference.getName());
+                else if (globalVars.containsKey(varReference.getName()))
+                    temp = globalVars.get(varReference.getName());
+                else 
+                    throw new Exception("The variable " + varReference.getName() + " was never initialized.");
+                
+                // Make sure the the IDT is an array.
+                InterpreterArrayDataType iadt;
+                if (temp instanceof InterpreterArrayDataType)
+                    iadt = (InterpreterArrayDataType) temp;
+                else
+                    throw new Exception("The variable " + varReference.getName() + " cannot be called as an array entry.");
+
+                // Get correct entry
+                InterpreterDataType entryIndexIDT = getIDT(varReference.getIndex().get(), localVar);
+                String index = entryIndexIDT.getValue();
+                if (iadt.contains(index))
+                    retval = iadt.getValue(index);
+                else
+                    throw new Exception("The array " + varReference.getName() + " does not contain an entry in the index " + index);
+            }
+            else{
+                if(localVar.containsKey(varReference.getName())){
+                    retval = localVar.get(varReference.getName());
+                }
+                else if (globalVars.containsKey(varReference.getName())){
+                    retval = globalVars.get(varReference.getName());
+                }
+                else{
+                    throw new Exception("The variable " + varReference.getName() + " was never initialized.");
+                }
+            }
         }
         else if(n instanceof OperationNode){
+            OperationNode operation = (OperationNode) n;
+            InterpreterDataType left = getIDT(operation.getLeft(), localVar);
+            
+            switch (operation.getOperation()){
+                case ADD:
 
+                    break;
+                case AND:
+                    break;
+                case CONCATENATION:
+                    break;
+                case DIVIDE:
+                    break;
+                case DOLLAR:
+                    break;
+                case EQ:
+                    break;
+                case EXPONENT:
+                    break;
+                case GE:
+                    break;
+                case GT:
+                    break;
+                case IN:
+                    break;
+                case LE:
+                    break;
+                case LT:
+                    break;
+                case MATCH:
+                    break;
+                case MODULO:
+                    break;
+                case MULTIPLY:
+                    break;
+                case NE:
+                    break;
+                case NOT:
+                    break;
+                case NOTMATCH:
+                    break;
+                case OR:
+                    break;
+                case POSTDEC:
+                    break;
+                case POSTINC:
+                    break;
+                case PREDEC:
+                    break;
+                case PREINC:
+                    break;
+                case SUBTRACT:
+                    break;
+                case UNARYNEG:
+                    break;
+                case UNARYPOS:
+                    break;
+                default:
+                    break;
+                
+            }
         }
         return retval;
     }
@@ -137,7 +234,7 @@ public class Interpreter {
                 return "";
             // Put all the entries into array
             for(int i=0; i<array.length; i++)
-                array[i] = IADTarray.getValue(toString(i));
+                array[i] = IADTarray.getValue(toString(i)).getValue();
 
             // Print them.
             System.out.print(array); 
@@ -158,7 +255,7 @@ public class Interpreter {
             else
                 return "";
             for(int i=0; i<array.length; i++)
-                array[i] = IADTarray.getValue(toString(i));
+                array[i] = IADTarray.getValue(toString(i)).getValue();
 
             System.out.printf(hm.get("format").getValue(), (Object) array); 
             return "";
@@ -320,7 +417,7 @@ public class Interpreter {
             else
                 return "false";
             for(int i=0; i<array.length; i++)
-                array[i] = (String) IADTarray.getValue(toString(i));
+                array[i] = (String) IADTarray.getValue(toString(i)).getValue();
 
             return String.format(hm.get("format").getValue(), (String[]) array); 
         };
