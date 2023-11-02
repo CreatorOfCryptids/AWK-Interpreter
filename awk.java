@@ -6,15 +6,17 @@ import java.util.LinkedList;
 public class awk {
     public static void main(String[] args) throws Exception{
         //Choose file.
-        String fileName;
+        String programFileName;
         /*if (args != null && args[0] != null)
             fileName = args[0];
         else*/
             //fileName = "test2.txt";
-            fileName = "Example2.awk";
+            programFileName = "Example2.awk";
+
+        String examinedFile = "";
 
         // Open file and pass to the lexer.
-        Path myPath = Paths.get(fileName);
+        Path myPath = Paths.get(programFileName);
         String file = new String(Files.readAllBytes(myPath));
         Lexer lex = new Lexer(file);
 
@@ -24,6 +26,10 @@ public class awk {
         //* Parse
         Parser parser = new Parser(list);
         ProgramNode program = parser.parse();
+
+        //Interpret
+        Interpreter interpreter = new Interpreter(program, examinedFile);
+        //interpreter.interpret();
 
         //Print the tokens.
         for(Token t: list){

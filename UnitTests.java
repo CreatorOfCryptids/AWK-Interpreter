@@ -562,7 +562,7 @@ public class UnitTests {
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("array", new InterpreterArrayDataType(new String[]{"test"}));
 
-        Assert.assertEquals("true", test.testExecute(testmap));
+        Assert.assertEquals("", test.testExecute(testmap));
     }
 
     @Test
@@ -576,7 +576,7 @@ public class UnitTests {
         testmap.put("array", new InterpreterArrayDataType(new String[]{"test"}));
         testmap.put("format", toIDT("%s"));
 
-        Assert.assertEquals("true", test.testExecute(testmap));
+        Assert.assertEquals("", test.testExecute(testmap));
     }
 
     @Test
@@ -589,7 +589,7 @@ public class UnitTests {
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         //testmap.put();
 
-        Assert.assertEquals("true", test.testExecute(testmap));
+        Assert.assertEquals("1", test.testExecute(testmap));
     }
 
     @Test
@@ -602,7 +602,7 @@ public class UnitTests {
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         //testmap.put();
 
-        Assert.assertEquals("true", test.testExecute(testmap));
+        Assert.assertEquals("1", test.testExecute(testmap));
     }
 
     @Test
@@ -613,11 +613,13 @@ public class UnitTests {
         BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("gsub");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
-        testmap.put("target", toIDT("@ replace this please ->>@<<- pleeeeeease"));
-        testmap.put("regexp", toIDT("@"));
-        testmap.put("replacement", toIDT("$"));
+        inter.globalVars.put("test", toIDT("@ replace this please ->>@<<- pleeeeeease"));
+        testmap.put("target", toIDT("test"));
+        testmap.put("regexp", toIDT("(@)"));
+        testmap.put("replacement", toIDT("\\$"));
 
-        Assert.assertEquals("2", test.testExecute(testmap));
+        Assert.assertEquals("1", test.testExecute(testmap));
+        Assert.assertEquals("$ replace this please ->>$<<- pleeeeeease", inter.globalVars.get("test").getValue());
     }
 
     @Test
@@ -631,7 +633,7 @@ public class UnitTests {
         testmap.put("string", toIDT(" can you find the 1@??????"));
         testmap.put("regexp", toIDT("[0-9]@*"));
 
-        Assert.assertEquals("", test.testExecute(testmap));
+        Assert.assertEquals("19", test.testExecute(testmap));
     }
 
     @Test
@@ -642,9 +644,13 @@ public class UnitTests {
         BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("sub");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
-        testmap.put();
+        inter.globalVars.put("test", toIDT("water, water, everywhere"));
+        testmap.put("regexp", toIDT("at"));
+        testmap.put("replacement", toIDT("ith"));
+        testmap.put("target", toIDT("test"));
 
-        Assert.assertEquals("return value :)", test.testExecute(testmap));
+        Assert.assertEquals("1", test.testExecute(testmap));
+        Assert.assertEquals("wither, water, everywhere", inter.globalVars.get("test").getValue());
     }
 
     @Test

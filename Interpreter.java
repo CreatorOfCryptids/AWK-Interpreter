@@ -5,15 +5,16 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 public class Interpreter {
 
-    // TODO temperary public for testing.
+    // TODO temperary public for testing
     public LineManager lm;
-    private HashMap<String, InterpreterDataType> globalVars;
+    public HashMap<String, InterpreterDataType> globalVars;
     public HashMap<String, FunctionDefinitionNode> functions;
 
     Interpreter(ProgramNode pNode, String filePath) throws Exception{
@@ -27,8 +28,6 @@ public class Interpreter {
         globalVars.put("FNR", toIDT(0));
         globalVars.put("NR", toIDT(0));
         
-        
-
         //try{
             /*
             Path myPath = Paths.get(fileName);
@@ -54,12 +53,16 @@ public class Interpreter {
         initializeBIFDNs();
     }
 
+    private InterpreterDataType getIDT(Node n, Optional<HashMap<String, InterpreterDataType>> localVar){
+        
+    }
+
     private void initializeBIFDNs(){
         String[] args;  // Using an array of strings to hold the args because it's easier than makeing a LinkedList. It will be changed to a LinkeList in the toBIFDN method.
         Function<HashMap<String, InterpreterDataType>, String> temp;
         
         //print
-        temp = (hm)->{
+        temp = (hm)->{// (array)
             String[] array; // Stores the array entries to pass to printf
             InterpreterArrayDataType IADTarray; // Stores the IADT passed to the function.
             // Make sure that the item passed is an IADT.
@@ -68,20 +71,20 @@ public class Interpreter {
                 array = new String[IADTarray.getSize()];
             }
             else
-                return "false";
+                return "";
             // Put all the entries into array
             for(int i=0; i<array.length; i++)
                 array[i] = IADTarray.getValue(toString(i));
 
             // Print them.
             System.out.print(array); 
-            return "true";
+            return "";
         };
         args = new String[]{"array"};
         functions.put("print", toBIFDN("print", temp, true, args));
         
         //printf
-        temp = (hm)->{
+        temp = (hm)->{// (format, array)
             String[] array; // Stores the array entries to pass to printf
             InterpreterArrayDataType IADTarray; // Stores the IADT passed to the function.
             // Make sure that the item passed is an IADT.
@@ -90,51 +93,62 @@ public class Interpreter {
                 array = new String[IADTarray.getSize()];
             }
             else
-                return "false";
+                return "";
             for(int i=0; i<array.length; i++)
                 array[i] = IADTarray.getValue(toString(i));
 
             System.out.printf(hm.get("format").getValue(), (Object) array); 
-            return "true";  //TODO: No idea what we're supposed to return here
+            return "";
         };
         args = new String[]{"format", "aray"};
         functions.put("printf", toBIFDN("printf", temp, true, args));
         
         // getline
-        temp = (hm)->{lm.splitAndAssign(); return "true";};
+        temp = (hm)->{lm.splitAndAssign(); return "1";};
         args = new String[]{};
         functions.put("getline", toBIFDN("getline", temp, false, args));
         
         // next
-        temp = (hm)->{lm.splitAndAssign(); return "true";};
+        temp = (hm)->{lm.splitAndAssign(); return "1";};
         args = new String[]{};
         functions.put("next", toBIFDN("next", temp, false, args));
         
-        // gsub
-        temp = (hm)->{//(regexp, replacement [, target])
+        // TODO gsub
+        temp = (hm) -> {//(regexp, replacement [, target])
             Pattern regex = Pattern.compile(hm.get("regexp").getValue());
             Matcher matcher;    // Initialize here to get a matcher with the chosen target out of the if blocks.
             String target;
-            int replacements = 0;
             // If the target is specificed, search the target instead of the current line.
-            if(!hm.get("target").getValue().equals("")){ // If the target entry is empty then it wasn't passed to the function.
-                matcher = regex.matcher(hm.get("target").getValue());
+            if (hm.containsKey("target"))
                 target = hm.get("target").getValue();
+            else
+                target = "$0";
+            
+            matcher = regex.matcher(globalVars.get(target).getValue()); // Send the right string to the matcher.
+
+            int replacements = matcher.groupCount();
+
+            String replaced = matcher.replaceAll(hm.get("replacement").getValue());
+
+            globalVars.replace(target, toIDT(replaced));
+
+            return toString(replacements);
+            /*if(!hm.get("target").getValue().equals("")){    // If the target entry is empty then it wasn't passed to the function.
+                matcher = regex.matcher(hm.get("target").getValue());
             }
             else{
                 matcher = regex.matcher(hm.get("$0").getValue());
-                target = globalVars.get("$0").getValue();
             }
 
             while (matcher.groupCount()>replacements){// Replace all the instances of the pattern
-                target.replace(matcher.group(replacements), hm.get("replacement").getValue());
+                matcher.replaceAll(matcher.group(replacements), hm.get("replacement").getValue());
                 replacements++;
             }
             if(!hm.get("target").getValue().equals(""))
                 hm.replace("target", toIDT(target));
             else
                 globalVars.replace("$0", toIDT(target));
-            return toString(replacements);
+            return toString(replacements); */
         };
         args = new String[]{"regexp", "replacement", "target"};
         functions.put("gsub", toBIFDN("gsub", temp, true, args));
@@ -148,11 +162,11 @@ public class Interpreter {
         
         // length
         temp = (hm)->{//([string])
-            if(hm.get("string").getValue().equals("")){
-                return toString(globalVars.get("$0").getValue().length());
+            if(hm.containsKey("string")){
+                return toString(hm.get("string").getValue().length());
             }  
             else{
-                return toString(hm.get("string").getValue().length());
+                return toString(globalVars.get("$0").getValue().length());
             }
         };
         args = new String[]{"string"};
@@ -162,12 +176,18 @@ public class Interpreter {
         temp = (hm)->{//(string, regexp [, array])
             Pattern regex = Pattern.compile(hm.get("regexp").getValue());
             Matcher matcher = regex.matcher(hm.get("string").getValue());
-            if(hm.containsKey("array")){
-                globalVars.replace(hm.get("array").getValue(), toIDT(hm.get("String").getValue().substring(matcher.start(), matcher.end())));
-                return toString(matcher.start()+1);  // Add one because AWK returns "0" for not found, and "1" if found at first index.
+
+            if(matcher.find()){
+                if(hm.containsKey("array")){
+                    globalVars.replace(hm.get("array").getValue(), toIDT(hm.get("String").getValue().substring(matcher.start(), matcher.end())));
+                    return toString(matcher.start()+1);  // Add one because AWK returns "0" for not found, and uses 1 as the first index.
+                }
+                else{
+                    return toString(matcher.start()+1);  // Add one because AWK returns "0" for not found, and "1" if found at first index.
+                }
             }
             else{
-                return toString(matcher.start()+1);  // Add one because AWK returns "0" for not found, and "1" if found at first index.
+                return toString(0);
             }
         };
         args = new String[]{"string", "regexp", "array"};
@@ -244,25 +264,25 @@ public class Interpreter {
         args = new String[]{"format", "array"};
         functions.put("sprintf", toBIFDN("sprintf", temp, true, args));
         
-        // sub
+        // TODO: sub
         temp = (hm)->{//(regexp, replacement [, target])
             Pattern regex = Pattern.compile(hm.get("regexp").getValue());
-            Matcher matcher;   // Initialize here so we can take the chosen target out of the if block.
-            int replacements = 0;
-            // If a target is specified, search the target instead of the current line.
-            if(!hm.get("target").getValue().equals("")){
-                matcher = regex.matcher(hm.get("target").getValue());
-            }
-            else{
-                matcher = regex.matcher(hm.get("$0").getValue());
-            }
-            if (matcher.matches()){//replace only one instance of the pattern
-                if(!hm.get("target").getValue().equals(""))
-                    hm.get("target").getValue().replace(matcher.group(1), hm.get("replacement").getValue());
-                else
-                    hm.get("$0").getValue().replace(matcher.group(1), hm.get("replacement").getValue());
-                replacements++;
-            }    
+            Matcher matcher;    // Initialize here to get a matcher with the chosen target out of the if blocks.
+            String target;
+            // If the target is specificed, search the target instead of the current line.
+            if (hm.containsKey("target"))
+                target = hm.get("target").getValue();
+            else
+                target = "$0";
+            
+            matcher = regex.matcher(globalVars.get(target).getValue()); // Send the right string to the matcher.
+
+            int replacements = matcher.find() ? 1 : 0;  // If we find something, we return a value of 1, otherwize, 0
+
+            String replaced = matcher.replaceFirst(hm.get("replacement").getValue());
+
+            globalVars.replace(target, toIDT(replaced));
+
             return toString(replacements);
         };
         args = new String[]{"regexp", "replacement", "target"};
@@ -270,7 +290,7 @@ public class Interpreter {
         
         // substr
         temp = (hm)->{//(string, start [, length ])
-            if(hm.containsKey("length") && !hm.get("length").getValue().equals("")){
+            if(hm.containsKey("length")){
                 return hm.get("string").getValue().substring(Integer.parseInt(hm.get("start").getValue()), Integer.parseInt(hm.get("start").getValue())+Integer.parseInt(hm.get("length").getValue()));
             }
             else{
