@@ -175,7 +175,7 @@ public class Interpreter {
                         break;
 
                     case GT:
-
+                        
                         break;
 
                     case LE:
@@ -206,7 +206,7 @@ public class Interpreter {
                         break;
 
                     case NOTMATCH:
-                        
+
                         break;
 
                     case OR:
@@ -237,16 +237,64 @@ public class Interpreter {
                         retval = leftIDT.toBoolean() ? toIDT("0") : toIDT("1");
                         break;
                     case POSTDEC:
-                        retval = toIDT(leftIDT.toFloat()-1);
+                        if (operation.getLeft() instanceof VariableReferenceNode){
+                            retval = toIDT(leftIDT.toFloat());
+                            VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
+                            if (localVar.containsKey(var.getName()))
+                                localVar.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
+                            else if (globalVars.containsKey(var.getName()))
+                                globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
+                            else
+                                throw new Exception("The variable " + var.getName() + " has not been initialized");
+                        }
+                        else{
+                            throw new Exception("The post-dec operator can only be used on a variable");
+                        }
                         break;
                     case POSTINC:
-                        retval = toIDT(leftIDT.toFloat()+1);
+                        if (operation.getLeft() instanceof VariableReferenceNode){
+                            retval = toIDT(leftIDT.toFloat());
+                            VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
+                            if (localVar.containsKey(var.getName()))
+                                localVar.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
+                            else if (globalVars.containsKey(var.getName()))
+                                globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
+                            else
+                                throw new Exception("The variable " + var.getName() + " has not been initialized");
+                        }
+                        else{
+                            throw new Exception("The post-dec operator can only be used on a variable");
+                        }
                         break;
                     case PREDEC:
-                        retval = toIDT(leftIDT.toFloat()-1);
+                        if (operation.getLeft() instanceof VariableReferenceNode){
+                            retval = toIDT(leftIDT.toFloat() - 1);
+                            VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
+                            if (localVar.containsKey(var.getName()))
+                                localVar.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
+                            else if (globalVars.containsKey(var.getName()))
+                                globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
+                            else
+                                throw new Exception("The variable " + var.getName() + " has not been initialized");
+                        }
+                        else{
+                            throw new Exception("The post-dec operator can only be used on a variable");
+                        }
                         break;
                     case PREINC:
-                        retval = toIDT(leftIDT.toFloat()+1);
+                        if (operation.getLeft() instanceof VariableReferenceNode){
+                            retval = toIDT(leftIDT.toFloat() + 1);
+                            VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
+                            if (localVar.containsKey(var.getName()))
+                                localVar.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
+                            else if (globalVars.containsKey(var.getName()))
+                                globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
+                            else
+                                throw new Exception("The variable " + var.getName() + " has not been initialized");
+                        }
+                        else{
+                            throw new Exception("The post-dec operator can only be used on a variable");
+                        }
                         break;
                     case UNARYNEG:
                         retval = toIDT(- leftIDT.toFloat());
