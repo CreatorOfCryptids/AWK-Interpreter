@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+//import java.math.*;
 
 public class Interpreter {
 
@@ -87,12 +88,8 @@ public class Interpreter {
         else if(n instanceof TernaryNode){
             TernaryNode ternary = (TernaryNode) n;
             InterpreterDataType booleanExpression = getIDT(ternary.getExpression(), localVar);
-            if(toBoolean(booleanExpression)){
-                retval = getIDT(ternary.getTrueCase(), localVar);
-            }
-            else {
-                retval = getIDT(ternary.getFalseCase(), localVar);
-            }
+            // I felt that using a ternary was fitting. 
+            retval = booleanExpression.toBoolean() ? getIDT(ternary.getTrueCase(), localVar) : getIDT(ternary.getFalseCase(), localVar);
         }
         else if(n instanceof VariableReferenceNode){
             VariableReferenceNode varReference = (VariableReferenceNode) n;
@@ -135,66 +132,131 @@ public class Interpreter {
             }
         }
         else if(n instanceof OperationNode){
-            OperationNode operation = (OperationNode) n;
-            InterpreterDataType left = getIDT(operation.getLeft(), localVar);
-            
-            switch (operation.getOperation()){
-                case ADD:
 
-                    break;
-                case AND:
-                    break;
-                case CONCATENATION:
-                    break;
-                case DIVIDE:
-                    break;
-                case DOLLAR:
-                    break;
-                case EQ:
-                    break;
-                case EXPONENT:
-                    break;
-                case GE:
-                    break;
-                case GT:
-                    break;
-                case IN:
-                    break;
-                case LE:
-                    break;
-                case LT:
-                    break;
-                case MATCH:
-                    break;
-                case MODULO:
-                    break;
-                case MULTIPLY:
-                    break;
-                case NE:
-                    break;
-                case NOT:
-                    break;
-                case NOTMATCH:
-                    break;
-                case OR:
-                    break;
-                case POSTDEC:
-                    break;
-                case POSTINC:
-                    break;
-                case PREDEC:
-                    break;
-                case PREINC:
-                    break;
-                case SUBTRACT:
-                    break;
-                case UNARYNEG:
-                    break;
-                case UNARYPOS:
-                    break;
-                default:
-                    break;
-                
+            OperationNode operation = (OperationNode) n;
+            InterpreterDataType leftIDT = getIDT(operation.getLeft(), localVar);
+
+            if (operation.hasRight()){
+                InterpreterDataType rightIDT = getIDT(operation.getRight().get(), localVar);
+                switch (operation.getOperation()){
+                    case ADD:
+                        retval = toIDT(leftIDT.toFloat() + rightIDT.toFloat());
+                        break;
+
+                    case AND:
+                        if (leftIDT.toBoolean() && rightIDT.toBoolean())
+                            retval = toIDT(1);
+                        else
+                            retval = toIDT(0);
+                        break;
+
+                    case CONCATENATION:
+                        retval = toIDT(leftIDT.getValue() + rightIDT.getValue());
+                        break;
+
+                    case DIVIDE:
+                        retval = toIDT(leftIDT.toFloat() / rightIDT.toFloat());
+                        break;
+
+                    case EQ:
+                        // Use string compare becaus if they're both the same they will have the same string.
+                        if (leftIDT.toString().equals(rightIDT.toString()))
+                            retval = toIDT(1);
+                        else
+                            retval = toIDT(0);
+                        break;
+
+                    case EXPONENT:
+                        retval = toIDT((float) Math.pow(leftIDT.toFloat(), rightIDT.toFloat()));
+                        break;
+
+                    case GE:
+
+                        break;
+
+                    case GT:
+
+                        break;
+
+                    case LE:
+
+                        break;
+
+                    case LT:
+
+                        break;
+
+                    case MATCH:
+
+                        break;
+
+                    case MODULO:
+                        retval = toIDT(leftIDT.toFloat() % rightIDT.toFloat());
+                        break;
+
+                    case MULTIPLY:
+                        retval = toIDT(leftIDT.toFloat() * rightIDT.toFloat());
+                        break;
+
+                    case NE:
+                        if (leftIDT.toString().equals(rightIDT.toString()))
+                            retval = toIDT(0);
+                        else
+                            retval = toIDT(1);
+                        break;
+
+                    case NOTMATCH:
+                        
+                        break;
+
+                    case OR:
+                        if (leftIDT.toBoolean() || rightIDT.toBoolean())
+                            retval = toIDT(1);
+                        else
+                            retval = toIDT(0);
+                        break;
+
+                    case SUBTRACT:
+                        retval = toIDT(leftIDT.toFloat() - rightIDT.toFloat());
+                        break;
+
+                    default:
+                        throw new Exception("Unexpected " + operation.getOperation() + "found");
+                }
+            }
+            else {
+                switch (operation.getOperation()){
+                    case DOLLAR:
+                        retval = globalVars.get(leftIDT.toString());
+                        if (retval == null){
+                            throw new Exception("The item $" + leftIDT.toString() + " does not exist in this enviornment.");
+                        }
+                        break;
+                    case NOT:
+                        // If the operation returns true return a false IDT, otherwize return true.
+                        retval = leftIDT.toBoolean() ? toIDT("0") : toIDT("1");
+                        break;
+                    case POSTDEC:
+                        retval = toIDT(leftIDT.toFloat()-1);
+                        break;
+                    case POSTINC:
+                        retval = toIDT(leftIDT.toFloat()+1);
+                        break;
+                    case PREDEC:
+                        retval = toIDT(leftIDT.toFloat()-1);
+                        break;
+                    case PREINC:
+                        retval = toIDT(leftIDT.toFloat()+1);
+                        break;
+                    case UNARYNEG:
+                        retval = toIDT(- leftIDT.toFloat());
+                        break;
+                    case UNARYPOS:
+                        retval = toIDT(+ leftIDT.toFloat());
+                        break;
+                    default:
+                        throw new Exception("Unexpected " + operation.getOperation() + "found");
+                }
             }
         }
         return retval;
@@ -203,18 +265,6 @@ public class Interpreter {
     private String runFunctionCall(FunctionCallNode fcn, HashMap<String, InterpreterDataType> localVars){
         // TODO: later
         return "";
-    }
-
-    private boolean toBoolean(InterpreterDataType idt){
-        try{
-            float fakeBoolean = Float.parseFloat(idt.getValue());
-            if(fakeBoolean == 0)
-                return false;
-            else return true;
-        }
-        catch(NumberFormatException e){
-            return false;
-        }
     }
 
     private void initializeBIFDNs(){
@@ -273,7 +323,7 @@ public class Interpreter {
         args = new String[]{};
         functions.put("next", toBIFDN("next", temp, false, args));
         
-        // TODO gsub
+        // gsub
         temp = (hm) -> {//(regexp, replacement [, target])
             Pattern regex = Pattern.compile(hm.get("regexp").getValue());
             Matcher matcher;    // Initialize here to get a matcher with the chosen target out of the if blocks.
@@ -293,22 +343,6 @@ public class Interpreter {
             globalVars.replace(target, toIDT(replaced));
 
             return toString(replacements);
-            /*if(!hm.get("target").getValue().equals("")){    // If the target entry is empty then it wasn't passed to the function.
-                matcher = regex.matcher(hm.get("target").getValue());
-            }
-            else{
-                matcher = regex.matcher(hm.get("$0").getValue());
-            }
-
-            while (matcher.groupCount()>replacements){// Replace all the instances of the pattern
-                matcher.replaceAll(matcher.group(replacements), hm.get("replacement").getValue());
-                replacements++;
-            }
-            if(!hm.get("target").getValue().equals(""))
-                hm.replace("target", toIDT(target));
-            else
-                globalVars.replace("$0", toIDT(target));
-            return toString(replacements); */
         };
         args = new String[]{"regexp", "replacement", "target"};
         functions.put("gsub", toBIFDN("gsub", temp, true, args));
@@ -332,7 +366,7 @@ public class Interpreter {
         args = new String[]{"string"};
         functions.put("length", toBIFDN("length", temp, true, args));
         
-        // TODO match
+        // match
         temp = (hm)->{//(string, regexp [, array])
             Pattern regex = Pattern.compile(hm.get("regexp").getValue());
             Matcher matcher = regex.matcher(hm.get("string").getValue());
@@ -366,42 +400,6 @@ public class Interpreter {
             array = string.split(seperator);
             globalVars.replace(hm.get("array").getValue(), new InterpreterArrayDataType(array));
             return toString(array.length);
-            
-            /*Pattern regex;  
-            Matcher matcher;
-            LinkedList<String> splitStrings = new LinkedList<String>();
-            LinkedList<String> seperators = new LinkedList<String>();
-            String target = hm.get("string").getValue();
-            int count = 0;
-            
-            // Initialze the regex as either the default feild seperator or the passed feild seperator
-            if(!hm.get("fieldsep").getValue().equals(""))
-                regex = Pattern.compile(hm.get("fieldsep").getValue());
-            else
-                regex = Pattern.compile(globalVars.get("FS").getValue());
-
-            //Loop thru the target string.
-            matcher = regex.matcher(target);
-            while(matcher.groupCount()<count){
-                splitStrings.add(target.substring(0, matcher.start()));
-                seperators.add(matcher.group(count++));
-            }
-
-            String[] splitStringsArray = (String[]) splitStrings.toArray();
-            globalVars.put(hm.get("array").getValue(), new InterpreterArrayDataType(splitStringsArray));
-
-            
-
-            if(hm.get("seps").getValue().equals("")){
-                String[] seperatorsArray = (String[]) seperators.toArray();
-                globalVars.replace(hm.get("seps").getValue(), new InterpreterArrayDataType(splitStringsArray));
-            }
-
-            return toString(splitStrings.size());*/
-            /*if(!hm.get("feildsep").getValue().equals(""))
-                splitStrings = hm.get("string").getValue().split(hm.get("feildsep").getValue());
-            else
-                splitStrings = hm.get("string").getValue().split(globalVars.get("FS").getValue());*/
         };
         args = new String[]{"string", "array", "fieldsep", "seps"};
         functions.put("split", toBIFDN("split", temp, true, args));
@@ -424,7 +422,7 @@ public class Interpreter {
         args = new String[]{"format", "array"};
         functions.put("sprintf", toBIFDN("sprintf", temp, true, args));
         
-        // TODO: sub
+        // sub
         temp = (hm)->{//(regexp, replacement [, target])
             Pattern regex = Pattern.compile(hm.get("regexp").getValue());
             Matcher matcher;    // Initialize here to get a matcher with the chosen target out of the if blocks.
@@ -523,18 +521,18 @@ public class Interpreter {
         return new InterpreterDataType(Integer.toString(value));
     }
 
-    /*private static InterpreterDataType toIDT(float value){
+    private InterpreterDataType toIDT(float value){
         return new InterpreterDataType(Float.toString(value));
-    }*/
+    }
 
-    private static BuiltInFunctionDefinitionNode toBIFDN(String name, Function<HashMap<String, InterpreterDataType>, String> foo, boolean variadic, String[] args){
+    private BuiltInFunctionDefinitionNode toBIFDN(String name, Function<HashMap<String, InterpreterDataType>, String> foo, boolean variadic, String[] args){
         LinkedList<String> argsList = new LinkedList<String>();
         for(String s: args)
             argsList.add(s);
         return new BuiltInFunctionDefinitionNode(name, foo, variadic, argsList);
     }
 
-    /*private static int IDTtoInt(InterpreterDataType idt) throws Exception{
+    /*private int IDTtoInt(InterpreterDataType idt) throws Exception{
         try{
             int retval = Integer.parseInt(idt.getValue());
             return retval;
@@ -544,11 +542,33 @@ public class Interpreter {
         }
     }*/
 
-    private static String toString(int value){
+    private String toString(int value){
         return Integer.toString(value);
     }
 
     /*private static String toString(float value){
         return Float.toString(value);
+    }*/
+
+    /*private float toFloat(InterpreterDataType idt)throws Exception{
+        try{
+            return Float.parseFloat(idt.getValue());
+        }
+        catch (NumberFormatException e){
+            throw new Exception("Expected a parseable float instead of \"" + idt.getValue() + "\"");
+        }
+
+    }*/
+
+    /*private boolean toBoolean(String value){
+        try{
+            float fakeBoolean = Float.parseFloat(value);
+            if(fakeBoolean == 0)
+                return false;
+            else return true;
+        }
+        catch(NumberFormatException e){
+            return false;
+        }
     }*/
 }
