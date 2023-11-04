@@ -159,11 +159,8 @@ public class Interpreter {
                         break;
 
                     case EQ:
-                        // Use string compare becaus if they're both the same they will have the same string.
-                        if (leftIDT.toString().equals(rightIDT.toString()))
-                            retval = toIDT(1);
-                        else
-                            retval = toIDT(0);
+                        // Use string compare because if they're both the same number value they will still have the same string.
+                        retval = toIDT(leftIDT.toString().equals(rightIDT.toString()));
                         break;
 
                     case EXPONENT:
@@ -175,7 +172,7 @@ public class Interpreter {
                         break;
 
                     case GT:
-                        
+
                         break;
 
                     case LE:
@@ -186,8 +183,20 @@ public class Interpreter {
 
                         break;
 
-                    case MATCH:
+                    case IN:
 
+                    
+                    case MATCH:
+                        PatternNode patNode;
+                        if (operation.getLeft() instanceof PatternNode)
+                            patNode = (PatternNode) operation.getLeft();
+                        else
+                            throw new Exception("Expected a pattern token.");
+
+                        Pattern pattern = Pattern.compile(patNode.getPattern());
+                        Matcher matcher = pattern.matcher(rightIDT.getValue());
+
+                        retval = toIDT(matcher.find());
                         break;
 
                     case MODULO:
@@ -206,7 +215,16 @@ public class Interpreter {
                         break;
 
                     case NOTMATCH:
+                        PatternNode patNode;
+                        if (operation.getLeft() instanceof PatternNode)
+                            patNode = (PatternNode) operation.getLeft();
+                        else
+                            throw new Exception("Expected a pattern token.");
 
+                        Pattern pattern = Pattern.compile(patNode.getPattern());
+                        Matcher matcher = pattern.matcher(rightIDT.getValue());
+
+                        retval = toIDT(!matcher.find());
                         break;
 
                     case OR:
@@ -571,6 +589,10 @@ public class Interpreter {
 
     private InterpreterDataType toIDT(float value){
         return new InterpreterDataType(Float.toString(value));
+    }
+
+    private InterpreterDataType toIDT(boolean value){
+        return value ? new InterpreterDataType("1") : new InterpreterDataType("0");
     }
 
     private BuiltInFunctionDefinitionNode toBIFDN(String name, Function<HashMap<String, InterpreterDataType>, String> foo, boolean variadic, String[] args){
