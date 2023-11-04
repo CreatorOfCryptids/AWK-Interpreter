@@ -168,35 +168,54 @@ public class Interpreter {
                         break;
 
                     case GE:
-
+                        // If one isn't a float, then it will throw and exception. So then we should just compare as strings.
+                        try{
+                            retval = toIDT(leftIDT.toFloat() >= rightIDT.toFloat());
+                        }  
+                        catch(Exception e){
+                            retval = toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) >= 0);
+                        }
                         break;
 
                     case GT:
-
+                        try{
+                            retval = toIDT(leftIDT.toFloat() > rightIDT.toFloat());
+                        }  
+                        catch(Exception e){
+                            retval = toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) > 0);
+                        }
                         break;
 
                     case LE:
-
+                        try{
+                            retval = toIDT(leftIDT.toFloat() >= rightIDT.toFloat());
+                        }  
+                        catch(Exception e){
+                            retval = toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) <= 0);
+                        }
                         break;
 
                     case LT:
-
+                        try{
+                            retval = toIDT(leftIDT.toFloat() > rightIDT.toFloat());
+                        }  
+                        catch(Exception e){
+                            retval = toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) > 0);
+                        }
                         break;
 
                     case IN:
-
+                        // TODO
+                        break;
                     
                     case MATCH:
-                        PatternNode patNode;
-                        if (operation.getLeft() instanceof PatternNode)
-                            patNode = (PatternNode) operation.getLeft();
-                        else
+                        if (!(operation.getLeft() instanceof PatternNode))
                             throw new Exception("Expected a pattern token.");
 
-                        Pattern pattern = Pattern.compile(patNode.getPattern());
-                        Matcher matcher = pattern.matcher(rightIDT.getValue());
+                        Pattern mPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
+                        Matcher mMatcher = mPattern.matcher(rightIDT.getValue());
 
-                        retval = toIDT(matcher.find());
+                        retval = toIDT(mMatcher.find());
                         break;
 
                     case MODULO:
@@ -215,16 +234,13 @@ public class Interpreter {
                         break;
 
                     case NOTMATCH:
-                        PatternNode patNode;
-                        if (operation.getLeft() instanceof PatternNode)
-                            patNode = (PatternNode) operation.getLeft();
-                        else
+                        if (!(operation.getLeft() instanceof PatternNode))
                             throw new Exception("Expected a pattern token.");
 
-                        Pattern pattern = Pattern.compile(patNode.getPattern());
-                        Matcher matcher = pattern.matcher(rightIDT.getValue());
+                        Pattern nmPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
+                        Matcher nmMatcher = nmPattern.matcher(rightIDT.getValue());
 
-                        retval = toIDT(!matcher.find());
+                        retval = toIDT(!nmMatcher.find());
                         break;
 
                     case OR:
