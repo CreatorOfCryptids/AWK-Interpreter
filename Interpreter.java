@@ -1,4 +1,5 @@
 //import java.io.IOException;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,7 +30,7 @@ public class Interpreter {
         globalVars.put("FNR", toIDT(0));
         globalVars.put("NR", toIDT(0));
         
-        //try{
+        try{
             /*
             Path myPath = Paths.get(fileName);
             String file = new String(Files.readAllBytes(myPath));
@@ -41,11 +42,11 @@ public class Interpreter {
                 lines.add(s);
             
             lm = new LineManager(lines);
-        /*}
+        }
         catch(IOException e){
-            throw new Exception("TEST: Files didn't work");
-            //lm = new LineManager(new LinkedList<String>());
-        }*/
+            //throw new Exception("TEST: Files didn't work");
+            lm = new LineManager(new LinkedList<String>());
+        }/**/
         functions = new HashMap<String, FunctionDefinitionNode>();
         LinkedList<FunctionDefinitionNode> functionList = pNode.getFunctionNodes();
         for(FunctionDefinitionNode n : functionList)
@@ -66,12 +67,15 @@ public class Interpreter {
             if(left instanceof VariableReferenceNode){
                 variableName = ((VariableReferenceNode) left).getName();
                 retval = getIDT(assignment.getRight(), localVar);
-                localVar.replace(variableName, retval);
+                // Replace it in the HashMap, if it already exists, otherwize, add to map.
+                if(localVar.replace(variableName, retval) == null)
+                    localVar.put(variableName, retval);
             }
             else if (left instanceof OperationNode && ((OperationNode)left).getOperation() == OperationNode.Operation.DOLLAR){
                 variableName = '$' + getIDT(((OperationNode)left).getLeft(), localVar).getValue();
                 retval = getIDT(assignment.getRight(), localVar);
-                localVar.replace(variableName, retval);
+                if(localVar.replace(variableName, retval) == null)
+                    localVar.put(variableName, retval);
             }
             else
                 throw new Exception("Expected a Variable Reference as left node of Assignment.");
@@ -205,6 +209,8 @@ public class Interpreter {
                             else if(globalVars.containsKey(rightVarName) && globalVars.get(rightVarName) instanceof InterpreterArrayDataType){
                                 return toIDT(((InterpreterArrayDataType) globalVars.get(rightVarName)).contains(leftIDT.getValue()));
                             }
+                            else 
+                                throw new Exception("The variable " + rightVarName + "could not be found.");
                         }
                     
                     case MATCH:
@@ -250,6 +256,7 @@ public class Interpreter {
                     if (retval == null){
                         throw new Exception("The item $" + leftIDT.toString() + " does not exist in this enviornment.");
                     }
+                    return retval;
                 }
                 else if (operation.getOperation() == OperationNode.Operation.NOT){
                     // If the operation returns true return a false IDT, otherwize return true.
@@ -259,13 +266,15 @@ public class Interpreter {
                     if (operation.getLeft() instanceof VariableReferenceNode){
                         InterpreterDataType retval = toIDT(leftIDT.toFloat());
                         VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
+
                         if (localVar.containsKey(var.getName()))
                             localVar.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
                         else if (globalVars.containsKey(var.getName()))
                             globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
                         else
                             throw new Exception("The variable " + var.getName() + " has not been initialized");
-                        // TODO return
+
+                        return retval;
                         }
                     else
                         throw new Exception("The post-dec operator can only be used on a variable");
@@ -274,12 +283,14 @@ public class Interpreter {
                     if (operation.getLeft() instanceof VariableReferenceNode){
                         InterpreterDataType retval = toIDT(leftIDT.toFloat());
                         VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
+
                         if (localVar.containsKey(var.getName()))
                             localVar.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
                         else if (globalVars.containsKey(var.getName()))
                             globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
                         else
                             throw new Exception("The variable " + var.getName() + " has not been initialized");
+
                         return retval;
                     }
                     else
@@ -289,12 +300,15 @@ public class Interpreter {
                     if (operation.getLeft() instanceof VariableReferenceNode){
                         InterpreterDataType retval = toIDT(leftIDT.toFloat() - 1);
                         VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
+
                         if (localVar.containsKey(var.getName()))
                             localVar.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
                         else if (globalVars.containsKey(var.getName()))
                             globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
                         else
                             throw new Exception("The variable " + var.getName() + " has not been initialized");
+
+                        return retval;
                     }
                     else
                         throw new Exception("The pre-dec operator can only be used on a variable");
@@ -303,6 +317,7 @@ public class Interpreter {
                     if (operation.getLeft() instanceof VariableReferenceNode){
                         InterpreterDataType retval = toIDT(leftIDT.toFloat() + 1);
                         VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
+
                         if (localVar.containsKey(var.getName()))
                             localVar.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
                         else if (globalVars.containsKey(var.getName()))
@@ -324,6 +339,9 @@ public class Interpreter {
                 else
                     throw new Exception("Unexpected " + operation.getOperation() + "found");
             }
+        }
+        else {
+            throw new Exception("Unrecognized node passed to getIDT.");
         }
     }
 

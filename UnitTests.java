@@ -750,10 +750,184 @@ public class UnitTests {
     }
 
     @Test
-    public void INTP_getIDT() throws Exception{
+    public void INTP_getIDT_AssignmentNode() throws Exception{
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+
         AssignmentNode an  = new AssignmentNode(new VariableReferenceNode("testVar"), 
-                                                new ConstantNode(new Token(Token.Type.NUMBER, "20", 1, 1)));
-        HashMap<String, InterpreterDataType> vars ;
+                                                new ConstantNode(new Token(Token.Type.NUMBER, "420", 1, 1)));
+        HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
+
+        Assert.assertEquals("420", inter.getIDT(an, vars).getValue());
+
+        an  = new AssignmentNode(new VariableReferenceNode("testVar"), 
+              new ConstantNode(new Token(Token.Type.NUMBER, "69", 1, 1)));
+
+        Assert.assertEquals("69", inter.getIDT(an, vars).getValue());
+        Assert.assertEquals("69", vars.get("testVar").getValue());
+    }
+
+    @Test
+    public void INTP_getIDT_ConstantNode() throws Exception{
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+
+        ConstantNode cn  = new ConstantNode(new Token(Token.Type.NUMBER, "666",1, 1));
+        HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
+
+        Assert.assertEquals("666", inter.getIDT(cn, vars).getValue());
+    }
+
+    @Test
+    public void INTP_getIDT_FunctionCall() throws Exception{
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+
+        FunctionCallNode fcn  = new FunctionCallNode("foo", new LinkedList<Node>());
+        HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
+
+        Assert.assertEquals("", inter.getIDT(fcn, vars).getValue());
+    }
+
+    @Test
+    public void INTP_getIDT_PatternNode() throws Exception{
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+
+        PatternNode pn  = new PatternNode(new Token(Token.Type.PATTERN, "*", 1, 1));
+        HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
+
+        try{
+            inter.getIDT(pn, vars);
+        }
+        catch(Exception e){
+            Assert.assertTrue(true);
+        }
+    }
+
+    @Test
+    public void INTP_getIDT_TernaryNode() throws Exception{
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+
+        TernaryNode tn  = new TernaryNode(new ConstantNode(new Token(Token.Type.NUMBER, "1",1, 1)),
+                                          new ConstantNode(new Token(Token.Type.NUMBER, "true",1, 1)),
+                                          new ConstantNode(new Token(Token.Type.NUMBER, "false",1, 1)));
+        HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
+
+        Assert.assertEquals("true", inter.getIDT(tn, vars).getValue());
+
+        tn  = new TernaryNode(new ConstantNode(new Token(Token.Type.NUMBER, "true (ie, false :)",1, 1)),
+              new ConstantNode(new Token(Token.Type.NUMBER, "true",1, 1)),
+              new ConstantNode(new Token(Token.Type.NUMBER, "false",1, 1)));
+
+        Assert.assertEquals("false", inter.getIDT(tn, vars).getValue());
+    }
+
+    @Test
+    public void INTP_getIDT_VariableReferenceNode() throws Exception{
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+
+        VariableReferenceNode vrn  = new VariableReferenceNode("test");
+        HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
+        vars.put("test", toIDT("correct"));
+
+        Assert.assertEquals("correct", inter.getIDT(vrn, vars).getValue());
+
+        vrn  = new VariableReferenceNode("testArray", new ConstantNode(new Token(Token.Type.NUMBER, "2", 1, 1)));
+        vars.put("testArray", new InterpreterArrayDataType(new String[]{"not this one", "Not this either", "yes this one", "Nope too far"}));
+
+        Assert.assertEquals("yes this one", inter.getIDT(vrn, vars).getValue());
+    }
+
+    @Test
+    public void OperationNode() throws Exception{
+        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Parser parse = new Parser(lex.lex());
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
+
+        OperationNode on  = new OperationNode(toConstantNode(3), OperationNode.Operation.ADD, toConstantNode(3));
+        Assert.assertEquals("6", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.AND, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.CONCATENATION, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.DIVIDE, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.EQ, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.EXPONENT, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.GE, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.GT, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.LE, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.LT, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.IN, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.MATCH, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.MODULO, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.MULTIPLY, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.NE, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.NOTMATCH, toConstantNode(3));
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.OR, toConstantNode(0));
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.SUBTRACT, toConstantNode(2));
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.NOT);
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.POSTDEC);
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.POSTINC);
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.PREDEC);
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.PREINC);
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.UNARYNEG);
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+
+        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.UNARYPOS);
+        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
     }
 
     // Quality of life functions:
@@ -765,4 +939,11 @@ public class UnitTests {
         return new InterpreterDataType(Integer.toString(value));
     }
 
+    private ConstantNode toConstantNode(String value){
+        return new ConstantNode(new Token(Token.Type.STRINGLITERAL, value, 0, 0));
+    }
+
+    private ConstantNode toConstantNode(int value){
+        return new ConstantNode(new Token(Token.Type.NUMBER, Integer.toString(value), 0, 0));
+    }
 }
