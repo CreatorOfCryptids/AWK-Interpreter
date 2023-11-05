@@ -142,7 +142,34 @@ public class Interpreter {
         else if(n instanceof OperationNode){
 
             OperationNode operation = (OperationNode) n;
-            InterpreterDataType leftIDT = getIDT(operation.getLeft(), localVar);
+            InterpreterDataType leftIDT;
+            // Looking at the left throws an exception if it's a pattern node, but if the left is a pattern node then it might be a match/notmatch.
+            try{
+                leftIDT = getIDT(operation.getLeft(), localVar);
+            }
+            catch(Exception e){
+                if (operation.getOperation() == OperationNode.Operation.MATCH && operation.hasRight()){
+                    if (!(operation.getLeft() instanceof PatternNode))
+                            throw new Exception("Expected a pattern token.");
+
+                        Pattern mPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
+                        Matcher mMatcher = mPattern.matcher(getIDT(operation.getRight().get(), localVar).getValue());
+
+                        return toIDT(mMatcher.find());
+                }
+                else if (operation.getOperation() == OperationNode.Operation.NOTMATCH && operation.hasRight()){
+                    if (!(operation.getLeft() instanceof PatternNode))
+                            throw new Exception("Expected a pattern token.");
+
+                        Pattern nmPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
+                        Matcher nmMatcher = nmPattern.matcher(getIDT(operation.getRight().get(), localVar).getValue());
+
+                        return toIDT(!nmMatcher.find());
+                }
+                else{
+                    throw e;
+                }
+            }
 
             if (operation.hasRight()){
                 InterpreterDataType rightIDT = getIDT(operation.getRight().get(), localVar);
@@ -161,7 +188,12 @@ public class Interpreter {
 
                     case EQ:
                         // Use string compare because if they're both the same number value they will still have the same string.
-                        return toIDT(leftIDT.toString().equals(rightIDT.toString()));
+                        try{
+                            return toIDT(leftIDT.toFloat() == rightIDT.toFloat());
+                        }  
+                        catch(Exception e){
+                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) == 0);
+                        }
 
                     case EXPONENT:
                         return toIDT((float) Math.pow(leftIDT.toFloat(), rightIDT.toFloat()));
@@ -212,25 +244,17 @@ public class Interpreter {
                             else 
                                 throw new Exception("The variable " + rightVarName + "could not be found.");
                         }
+                        else
+                            throw new Exception("Expected two variable references");
                     
-                    case MATCH:
+                    /*case MATCH:
                         if (!(operation.getLeft() instanceof PatternNode))
                             throw new Exception("Expected a pattern token.");
 
                         Pattern mPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
                         Matcher mMatcher = mPattern.matcher(rightIDT.getValue());
 
-                        return toIDT(mMatcher.find());
-
-                    case MODULO:
-                        return toIDT(leftIDT.toFloat() % rightIDT.toFloat());
-
-                    case MULTIPLY:
-                        return toIDT(leftIDT.toFloat() * rightIDT.toFloat());
-
-                    case NE:
-                        return toIDT(!(leftIDT.toString().equals(rightIDT.toString())));
-
+                        return toIDT(mMatcher.find());*
                     case NOTMATCH:
                         if (!(operation.getLeft() instanceof PatternNode))
                             throw new Exception("Expected a pattern token.");
@@ -239,7 +263,21 @@ public class Interpreter {
                         Matcher nmMatcher = nmPattern.matcher(rightIDT.getValue());
 
                         return toIDT(!nmMatcher.find());
+                        /**/
+                    case MODULO:
+                        return toIDT(leftIDT.toFloat() % rightIDT.toFloat());
 
+                    case MULTIPLY:
+                        return toIDT(leftIDT.toFloat() * rightIDT.toFloat());
+
+                    case NE:
+                        try{
+                            return toIDT(leftIDT.toFloat() != rightIDT.toFloat());
+                        }  
+                        catch(Exception e){
+                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) != 0);
+                        }
+                    
                     case OR:
                         return toIDT(leftIDT.toBoolean() || rightIDT.toBoolean());
 
@@ -331,10 +369,10 @@ public class Interpreter {
                         throw new Exception("The pre-inc operator can only be used on a variable");
                 }
                 else if (operation.getOperation() == OperationNode.Operation.UNARYNEG){
-                    return toIDT(- leftIDT.toFloat());
+                    return toIDT(leftIDT.toFloat() < 0 ? leftIDT.toFloat() : -leftIDT.toFloat());
                 }
                 else if (operation.getOperation() == OperationNode.Operation.UNARYPOS){
-                    return toIDT(+ leftIDT.toFloat());
+                    return toIDT(leftIDT.toFloat() < 0 ? -leftIDT.toFloat() : leftIDT.toFloat());
                 }                        
                 else
                     throw new Exception("Unexpected " + operation.getOperation() + "found");

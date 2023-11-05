@@ -853,81 +853,109 @@ public class UnitTests {
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
         HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
+        vars.put("tests", new InterpreterArrayDataType(new String[]{"correct"}));
+        vars.put("testNum", toIDT(3));
 
         OperationNode on  = new OperationNode(toConstantNode(3), OperationNode.Operation.ADD, toConstantNode(3));
-        Assert.assertEquals("6", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("6.0", inter.getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.AND, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(0), OperationNode.Operation.AND, toConstantNode(3));
+        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
 
-        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.CONCATENATION, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode("This and "), OperationNode.Operation.CONCATENATION, toConstantNode("that"));
+        Assert.assertEquals("This and that", inter.getIDT(on, vars).getValue());
 
-        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.DIVIDE, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(69), OperationNode.Operation.DIVIDE, toConstantNode(3));
+        Assert.assertEquals("23.0", inter.getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.EQ, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(3.0f), OperationNode.Operation.EQ, toConstantNode(3));
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode("many"), OperationNode.Operation.EQ, toConstantNode("many"));
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode("many"), OperationNode.Operation.EQ, toConstantNode("more"));
+        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.EXPONENT, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("27.0", inter.getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.GE, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(4), OperationNode.Operation.GE, toConstantNode(3));
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(2), OperationNode.Operation.GE, toConstantNode(3));
+        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.GT, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(4), OperationNode.Operation.GT, toConstantNode(3));
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(2), OperationNode.Operation.GT, toConstantNode(3));
+        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.LE, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(4), OperationNode.Operation.LE, toConstantNode(3));
+        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(2), OperationNode.Operation.LE, toConstantNode(3));
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.LT, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(4), OperationNode.Operation.LT, toConstantNode(3));
+        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(2), OperationNode.Operation.LT, toConstantNode(3));
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
 
-        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.IN, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(0), OperationNode.Operation.IN, new VariableReferenceNode("tests"));
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
 
-        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.MATCH, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(new PatternNode(new Token(Token.Type.PATTERN, "[0-9]*.p", 0, 0)), OperationNode.Operation.MATCH, toConstantNode("hi 2gamma.p!"));
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
 
-        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.MODULO, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(4), OperationNode.Operation.MODULO, toConstantNode(3));
+        Assert.assertEquals("1.0", inter.getIDT(on, vars).getValue());
         
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.MULTIPLY, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("9.0", inter.getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.NE, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(4), OperationNode.Operation.NE, toConstantNode(3));
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
 
-        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.NOTMATCH, toConstantNode(3));
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(new PatternNode(new Token(Token.Type.PATTERN, "[1-9]*.p", 0, 0)), OperationNode.Operation.MATCH, toConstantNode("hi 2gamma.p!"));
+        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.OR, toConstantNode(0));
         Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.SUBTRACT, toConstantNode(2));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1.0", inter.getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.NOT);
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
 
-        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.POSTDEC);
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(new VariableReferenceNode("testNum"), OperationNode.Operation.POSTDEC);
+        Assert.assertEquals("3.0", inter.getIDT(on, vars).getValue());
 
-        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.POSTINC);
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(new VariableReferenceNode("testNum"), OperationNode.Operation.POSTINC);
+        Assert.assertEquals("2.0", inter.getIDT(on, vars).getValue());
 
-        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.PREDEC);
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(new VariableReferenceNode("testNum"), OperationNode.Operation.PREDEC);
+        Assert.assertEquals("2.0", inter.getIDT(on, vars).getValue());
         
-        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.PREINC);
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(new VariableReferenceNode("testNum"), OperationNode.Operation.PREINC);
+        Assert.assertEquals("3.0", inter.getIDT(on, vars).getValue());
 
-        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.UNARYNEG);
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(69), OperationNode.Operation.UNARYNEG);
+        Assert.assertEquals("-69.0", inter.getIDT(on, vars).getValue());
 
-        on  = new OperationNode(toConstantNode(3), OperationNode.Operation.UNARYPOS);
-        Assert.assertEquals("69", inter.getIDT(on, vars).getValue());
+        on  = new OperationNode(toConstantNode(-3), OperationNode.Operation.UNARYPOS);
+        Assert.assertEquals("3.0", inter.getIDT(on, vars).getValue());
     }
 
     // Quality of life functions:
@@ -945,5 +973,9 @@ public class UnitTests {
 
     private ConstantNode toConstantNode(int value){
         return new ConstantNode(new Token(Token.Type.NUMBER, Integer.toString(value), 0, 0));
+    }
+
+    private ConstantNode toConstantNode(float value){
+        return new ConstantNode(new Token(Token.Type.NUMBER, Float.toString(value), 0, 0));
     }
 }
