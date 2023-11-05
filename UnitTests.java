@@ -749,6 +749,13 @@ public class UnitTests {
         Assert.assertEquals("MAKE THIS UPPER", test.testExecute(testmap));
     }
 
+    @Test
+    public void INTP_getIDT() throws Exception{
+        AssignmentNode an  = new AssignmentNode(new VariableReferenceNode("testVar"), 
+                                                new ConstantNode(new Token(Token.Type.NUMBER, "20", 1, 1)));
+        HashMap<String, InterpreterDataType> vars ;
+    }
+
     // Quality of life functions:
     private InterpreterDataType toIDT(String value){
         return new InterpreterDataType(value);
