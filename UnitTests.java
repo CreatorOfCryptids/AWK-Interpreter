@@ -540,8 +540,8 @@ public class UnitTests {
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
 
         for(int i = 0; i<10; i++)
-            Assert.assertTrue(inter.lm.splitAndAssign());
-        Assert.assertFalse(inter.lm.splitAndAssign());
+            Assert.assertTrue(inter.getLineManager().splitAndAssign());
+        Assert.assertFalse(inter.getLineManager().splitAndAssign());
     }
 
     @Test
@@ -557,7 +557,7 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("print");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("print");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("array", new InterpreterArrayDataType(new String[]{"test"}));
@@ -570,7 +570,7 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("printf");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("printf");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("array", new InterpreterArrayDataType(new String[]{"test"}));
@@ -584,7 +584,7 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("getline");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("getline");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         //testmap.put();
@@ -597,7 +597,7 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("next");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("next");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         //testmap.put();
@@ -610,16 +610,16 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("gsub");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("gsub");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
-        inter.globalVars.put("test", toIDT("@ replace this please ->>@<<- pleeeeeease"));
+        inter.getGlobals().put("test", toIDT("@ replace this please ->>@<<- pleeeeeease"));
         testmap.put("target", toIDT("test"));
         testmap.put("regexp", toIDT("(@)"));
         testmap.put("replacement", toIDT("\\$"));
 
         Assert.assertEquals("1", test.testExecute(testmap));
-        Assert.assertEquals("$ replace this please ->>$<<- pleeeeeease", inter.globalVars.get("test").getValue());
+        Assert.assertEquals("$ replace this please ->>$<<- pleeeeeease", inter.getGlobals().get("test").getValue());
     }
 
     @Test
@@ -627,7 +627,7 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("match");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("match");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("string", toIDT(" can you find the 1@??????"));
@@ -641,16 +641,16 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("sub");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("sub");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
-        inter.globalVars.put("test", toIDT("water, water, everywhere"));
+        inter.getGlobals().put("test", toIDT("water, water, everywhere"));
         testmap.put("regexp", toIDT("at"));
         testmap.put("replacement", toIDT("ith"));
         testmap.put("target", toIDT("test"));
 
         Assert.assertEquals("1", test.testExecute(testmap));
-        Assert.assertEquals("wither, water, everywhere", inter.globalVars.get("test").getValue());
+        Assert.assertEquals("wither, water, everywhere", inter.getGlobals().get("test").getValue());
     }
 
     @Test
@@ -658,7 +658,7 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("index");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("index");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("find", toIDT("@"));
@@ -673,7 +673,7 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("length");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("length");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("string", toIDT("How long?"));
@@ -686,7 +686,7 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("split");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("split");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("string", toIDT("Can you seperate these?"));
@@ -700,7 +700,7 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("sprintf");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("sprintf");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("array", new InterpreterArrayDataType(new String[]{"test"}));
@@ -714,7 +714,7 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("substr");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("substr");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("string", toIDT("this is a test"));
@@ -728,7 +728,7 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("tolower");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("tolower");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("string", toIDT("make This lOWER"));
@@ -741,7 +741,7 @@ public class UnitTests {
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
-        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.functions.get("toupper");
+        BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("toupper");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("string", toIDT("make this UPPER"));
@@ -848,7 +848,7 @@ public class UnitTests {
     }
 
     @Test
-    public void OperationNode() throws Exception{
+    public void INTP_getIDT_OperationNode() throws Exception{
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
@@ -957,6 +957,23 @@ public class UnitTests {
         on  = new OperationNode(toConstantNode(-3), OperationNode.Operation.UNARYPOS);
         Assert.assertEquals("3.0", inter.getIDT(on, vars).getValue());
     }
+
+    @Test
+    public void RT() throws Exception{
+        ReturnType retty = new ReturnType(ReturnType.Result.BREAK);
+        Assert.assertEquals("BREAK", retty.toString());
+        Assert.assertFalse(retty.hasValue());
+        Assert.assertEquals(ReturnType.Result.BREAK, retty.getResult());
+
+        retty = new ReturnType(ReturnType.Result.RETURN, "I am the return variable");
+        Assert.assertEquals("RETURN \"I am the return variable\"", retty.toString());
+        Assert.assertTrue(retty.hasValue());
+        Assert.assertEquals("I am the return variable", retty.getValue().get());
+        Assert.assertEquals(ReturnType.Result.RETURN, retty.getResult());
+    }
+
+
+
 
     // Quality of life functions:
     private InterpreterDataType toIDT(String value){

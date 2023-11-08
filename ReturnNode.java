@@ -6,6 +6,14 @@ public class ReturnNode extends StatementNode{
         this.returnValue = returnValue;
     }
 
+    /**
+     * The getReturnValue() accessor.
+     * @return A node containting the desired return value.
+     */
+    public Node getReturnValue(){
+        return returnValue;
+    }
+
     public String toString() {
         String retval = "return ";
         retval += returnValue.toString() + ";";

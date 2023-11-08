@@ -6,6 +6,10 @@ public class DeleteNode extends StatementNode{
         this.deletedVariable = deletedVariable;
     }
 
+    public VariableReferenceNode getDeletedVariable(){
+        return deletedVariable;
+    }
+
     public String toString() {
         String retval = "delete " + deletedVariable;
         return retval;

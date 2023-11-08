@@ -17,6 +17,10 @@ public class InterpreterArrayDataType extends InterpreterDataType{
         return values.get(key);
     }
 
+    public InterpreterDataType remove(String key){
+        return values.remove(key);
+    }
+
     public int getSize(){
         return values.size();
     }

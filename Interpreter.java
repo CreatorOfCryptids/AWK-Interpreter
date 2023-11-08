@@ -1,4 +1,4 @@
-//import java.io.IOException;
+import java.beans.Statement;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,14 +10,12 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-//import java.math.*;
 
 public class Interpreter {
 
-    // TODO temperary public for testing
-    public LineManager lm;
-    public HashMap<String, InterpreterDataType> globalVars;
-    public HashMap<String, FunctionDefinitionNode> functions;
+    private LineManager lm;
+    private HashMap<String, InterpreterDataType> globalVars;
+    private HashMap<String, FunctionDefinitionNode> functions;
 
     Interpreter(ProgramNode pNode, String filePath) throws Exception{
         globalVars = new HashMap<String, InterpreterDataType>();
@@ -55,8 +53,7 @@ public class Interpreter {
         initializeBIFDNs();
     }
 
-    // TODO: Make private after testing.
-    public InterpreterDataType getIDT(Node n, HashMap<String, InterpreterDataType> localVar) throws Exception{
+    private InterpreterDataType getIDT(Node n, HashMap<String, InterpreterDataType> localVar) throws Exception{
         //
         if(n instanceof AssignmentNode){
             AssignmentNode assignment = ((AssignmentNode)n);
@@ -593,7 +590,11 @@ public class Interpreter {
         args = new String[]{"string"};
         functions.put("toupper", toBIFDN("toupper", temp, false, args));
     }
-    
+
+    private ReturnType interpreteStatementList(LinkedList<StatementNode> statements, HashMap<String, InterpreterDataType> localVars){
+        return null;
+    }
+
     public class LineManager{
         List<String> file;
         int lineNum;
@@ -631,6 +632,67 @@ public class Interpreter {
             globalVars.replace("NF", toIDT(Integer.toString(currentLine.length)));
             return true;
         }
+    }
+
+    private ReturnType processStatement(HashMap<String, InterpreterDataType> localVars, StatementNode statement) throws Exception{
+        if(statement instanceof AssignmentNode){
+            // getIDT() already assigns the value to the variable in the AssigmentNode.
+            return new ReturnType(ReturnType.Result.NORMAL, getIDT((AssignmentNode) statement, localVars).getValue());
+        }
+        else if (statement instanceof BreakNode){
+            return new ReturnType(ReturnType.Result.BREAK);
+        }
+        else if (statement instanceof ContinueNode){
+            return new ReturnType(ReturnType.Result.CONTINUE);
+        }
+        else if (statement instanceof DeleteNode){
+            VariableReferenceNode deleteMe = ((DeleteNode) statement).getDeletedVariable();
+            HashMap<String, InterpreterDataType> tempMap;
+
+            if(localVars.containsKey(deleteMe.getName()))
+                tempMap = localVars;
+            else if (globalVars.containsKey(deleteMe.getName()))
+                tempMap = globalVars;
+            else
+                throw new Exception("The variable " + deleteMe.getName() + " cannot be deleted because it does not exist.");
+            
+            if (deleteMe.isArray() && tempMap.get(deleteMe.getName()) instanceof InterpreterArrayDataType){
+                InterpreterArrayDataType iadt = (InterpreterArrayDataType) tempMap.get(deleteMe.getName());
+                iadt.remove(getIDT(deleteMe.getIndex().get(), localVars).getValue());
+            }
+            else 
+                tempMap.remove(deleteMe.getName());
+
+            return new ReturnType(ReturnType.Result.NORMAL);
+        }
+        else if (statement instanceof DoWhileNode){
+            DoWhileNode doIt = (DoWhileNode) statement;
+            do{
+                interpreteStatementList(doIt.g);
+            }
+            return new ReturnType(ReturnType.Result.CONTINUE);
+        }
+        else if (statement instanceof ForNode){
+            return new ReturnType(ReturnType.Result.CONTINUE);
+        }
+        else if (statement instanceof ForEachNode){
+            return new ReturnType(ReturnType.Result.CONTINUE);
+        }
+        else if (statement instanceof FunctionCallNode){
+            runFunctionCall(((FunctionCallNode) statement), localVars);
+            return new ReturnType(ReturnType.Result.CONTINUE);
+        }
+        else if (statement instanceof IfNode){
+            return new ReturnType(ReturnType.Result.CONTINUE);
+        }
+        else if (statement instanceof ReturnNode){
+            return new ReturnType(ReturnType.Result.RETURN, getIDT(((ReturnNode)statement).getReturnValue(), localVars).getValue());
+        }
+        else if (statement instanceof WhileNode){
+            return new ReturnType(ReturnType.Result.CONTINUE);
+        }
+        else 
+            throw new Exception("Unexpected " + statement.getClass() + " in statements.");
     }
 
     // Quality of life methods:
@@ -696,4 +758,33 @@ public class Interpreter {
             return false;
         }
     }*/
+
+    // TODO: Delete after testing.
+    public LineManager getLineManager(){
+        return lm;
+    }
+
+    public HashMap<String, InterpreterDataType> getGlobals(){
+        return globalVars;
+    }
+
+    public HashMap<String, FunctionDefinitionNode> getFunctions() {
+        return functions;
+    }
+
+    public ReturnType TEST_processStatements(HashMap<String, InterpreterDataType> localVars, StatementNode statements) throws Exception{
+        return processStatement(localVars, statements);
+    }
+
+    public InterpreterDataType TEST_getIDT(Node n, HashMap<String, InterpreterDataType> localVar)throws Exception{
+        return getIDT(n, localVar);
+    }
+
+    public String TEST_runFunctionCall(FunctionCallNode fcn, HashMap<String, InterpreterDataType> localVars){
+        return runFunctionCall(fcn, localVars);
+    }
+
+    public ReturnType TEST_interpreteStatementList(LinkedList<StatementNode> statements, HashMap<String, InterpreterDataType> localVars){
+        return interpreteStatementList(statements, localVars);
+    }
 }
