@@ -591,16 +591,14 @@ public class Interpreter {
     }
 
     private ReturnType processStatementList(LinkedList<StatementNode> statements, HashMap<String, InterpreterDataType> localVars) throws Exception{
-        ReturnType retval = new ReturnType(ReturnType.Result.NORMAL);
-
         for(StatementNode s : statements){
-            retval = processStatement(localVars, s);
+            ReturnType retval = processStatement(localVars, s);    // Store the result to check and return if needed.
 
             if (retval.getResult() != ReturnType.Result.NORMAL)
                 return retval;
         }
 
-        return retval;
+        return new ReturnType(ReturnType.Result.NORMAL);    // If nothing is found, return NORMAL result.
     }
 
     private ReturnType processStatement(HashMap<String, InterpreterDataType> localVars, StatementNode statement) throws Exception{
@@ -616,9 +614,11 @@ public class Interpreter {
             return new ReturnType(ReturnType.Result.CONTINUE);
         }
         else if (statement instanceof DeleteNode){
+
             VariableReferenceNode deleteMe = ((DeleteNode) statement).getDeletedVariable();
             HashMap<String, InterpreterDataType> tempMap;
 
+            // Get the right variable map.
             if(localVars.containsKey(deleteMe.getName()))
                 tempMap = localVars;
             else if (globalVars.containsKey(deleteMe.getName()))
@@ -626,6 +626,7 @@ public class Interpreter {
             else
                 throw new Exception("The variable " + deleteMe.getName() + " cannot be deleted because it does not exist.");
             
+            // Check if it is an array reference.
             if (deleteMe.isArray() && tempMap.get(deleteMe.getName()) instanceof InterpreterArrayDataType){
                 InterpreterArrayDataType iadt = (InterpreterArrayDataType) tempMap.get(deleteMe.getName());
                 iadt.remove(getIDT(deleteMe.getIndex().get(), localVars).getValue());
@@ -649,14 +650,14 @@ public class Interpreter {
         else if (statement instanceof ForNode){
 
             ForNode fNode = (ForNode) statement;
-            ReturnType retval;
+            ReturnType retval = new ReturnType(ReturnType.Result.NORMAL);
 
             if (fNode.getInitialization() instanceof StatementNode)
                 processStatement(localVars, (StatementNode)fNode.getInitialization());
             
             while(getIDT(fNode.getCondition(), localVars).toBoolean()){
                 retval = processStatementList(fNode.getStatements(), localVars);
-                processStatement(localVars, (StatementNode) fNode.getIterator());
+                processStatement(localVars, (StatementNode) fNode.getIterator());   // Update the iterator.
             }
 
             return retval;
@@ -667,7 +668,7 @@ public class Interpreter {
             HashMap<String, InterpreterDataType> tempMap;
             ReturnType retval = new ReturnType(ReturnType.Result.NORMAL);
 
-
+            // Get the correct list.
             if(localVars.containsKey(forEachNode.getList().getName()) && localVars.get(forEachNode.getList().getName()) instanceof InterpreterArrayDataType){
                 tempMap = ((InterpreterArrayDataType) localVars.get(forEachNode.getList().getName())).getMap();
             }
@@ -679,7 +680,7 @@ public class Interpreter {
 
             String current = "0";
             while(Integer.parseInt(current) < tempMap.size()){
-                InterpreterDataType temp = tempMap.get(current);
+                InterpreterDataType temp = tempMap.get(current);    // Store the current array index
 
                 retval = processStatementList(forEachNode.getStatements(), localVars);
 
@@ -712,18 +713,20 @@ public class Interpreter {
             return new ReturnType(ReturnType.Result.RETURN, getIDT(retNode.getReturnValue(), localVars).getValue());
         }
         else if (statement instanceof WhileNode){
+
             WhileNode whileNode = (WhileNode) statement;
+            ReturnType retval = new ReturnType(ReturnType.Result.NORMAL);
 
             while(getIDT(whileNode.getCondition(), localVars).toBoolean()){
                 processStatementList(whileNode.getStatements(), localVars);
             } 
 
-            return new ReturnType(ReturnType.Result.CONTINUE);
+            return retval;
         }
         else{
             try{
                 getIDT(statement, localVars); // Make sure that getIDT returns a valid value.
-                return new ReturnType(ReturnType.Result.CONTINUE);
+                return new ReturnType(ReturnType.Result.NORMAL);
             }
             catch (Exception e){
                 throw new Exception(e.getMessage() + "\nError procesing statement");
