@@ -1,4 +1,3 @@
-import java.beans.Statement;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -595,6 +594,129 @@ public class Interpreter {
         return null;
     }
 
+    private ReturnType processStatement(HashMap<String, InterpreterDataType> localVars, StatementNode statement) throws Exception{
+        /* if(statement instanceof AssignmentNode){
+        //     // getIDT() already assigns the value to the variable in the AssigmentNode.
+        //     return new ReturnType(ReturnType.Result.NORMAL, getIDT((AssignmentNode) statement, localVars).getValue());
+        // }
+        // else */
+        if (statement instanceof BreakNode){
+            return new ReturnType(ReturnType.Result.BREAK);
+        }
+        else if (statement instanceof ContinueNode){
+            return new ReturnType(ReturnType.Result.CONTINUE);
+        }
+        else if (statement instanceof DeleteNode){
+            VariableReferenceNode deleteMe = ((DeleteNode) statement).getDeletedVariable();
+            HashMap<String, InterpreterDataType> tempMap;
+
+            if(localVars.containsKey(deleteMe.getName()))
+                tempMap = localVars;
+            else if (globalVars.containsKey(deleteMe.getName()))
+                tempMap = globalVars;
+            else
+                throw new Exception("The variable " + deleteMe.getName() + " cannot be deleted because it does not exist.");
+            
+            if (deleteMe.isArray() && tempMap.get(deleteMe.getName()) instanceof InterpreterArrayDataType){
+                InterpreterArrayDataType iadt = (InterpreterArrayDataType) tempMap.get(deleteMe.getName());
+                iadt.remove(getIDT(deleteMe.getIndex().get(), localVars).getValue());
+            }
+            else 
+                tempMap.remove(deleteMe.getName());
+
+            return new ReturnType(ReturnType.Result.NORMAL);
+        }
+        else if (statement instanceof DoWhileNode){
+            DoWhileNode doWhileNode = (DoWhileNode) statement;
+
+            do{
+                interpreteStatementList(doWhileNode.getStatements(), localVars);
+            } 
+            while(getIDT(doWhileNode.getCondition(), localVars).toBoolean());
+
+            return new ReturnType(ReturnType.Result.CONTINUE);
+        }
+        else if (statement instanceof ForNode){
+            ForNode fNode = (ForNode) statement;
+
+            if (fNode.getInitialization() instanceof StatementNode)
+                processStatement(localVars, (StatementNode)fNode.getInitialization());
+            
+            while(getIDT(fNode.getCondition(), localVars).toBoolean()){
+                interpreteStatementList(fNode.getStatements(), localVars);
+                processStatement(localVars, (StatementNode) fNode.getIterator());
+            }
+
+            return new ReturnType(ReturnType.Result.CONTINUE);
+        }
+        else if (statement instanceof ForEachNode){
+
+            ForEachNode forEachNode = (ForEachNode) statement;
+            HashMap<String, InterpreterDataType> tempMap;
+
+            if(localVars.containsKey(forEachNode.getList().getName()) && localVars.get(forEachNode.getList().getName()) instanceof InterpreterArrayDataType){
+                tempMap = ((InterpreterArrayDataType) localVars.get(forEachNode.getList().getName())).getMap();
+            }
+            else if (globalVars.containsKey(forEachNode.getList().getName()) && globalVars.get(forEachNode.getList().getName()) instanceof InterpreterArrayDataType){
+                tempMap = ((InterpreterArrayDataType) globalVars.get(forEachNode.getList().getName())).getMap();
+            }
+            else
+                throw new Exception("The list \"" + forEachNode.getList().getName() + "\" cannot be resolved");
+
+            String current = "0";
+            while(Integer.parseInt(current) < tempMap.size()){
+                InterpreterDataType temp = tempMap.get(current);
+
+                interpreteStatementList(forEachNode.getStatements(), localVars);
+
+                current = Integer.toString(Integer.parseInt(current) + 1);
+            }
+
+            return new ReturnType(ReturnType.Result.CONTINUE);
+        }
+        /* else if (statement instanceof FunctionCallNode){
+        //     runFunctionCall(((FunctionCallNode) statement), localVars);
+        //     return new ReturnType(ReturnType.Result.CONTINUE);
+        // }*/
+        else if (statement instanceof IfNode){
+
+            IfNode ifNode = (IfNode) statement;
+
+            // Loop thru each if statement until we find one that evaluates to true
+            while (ifNode.getCondition().isPresent() && !getIDT(ifNode.getCondition().get(), localVars).toBoolean()){
+                if(ifNode.getNext().isPresent())
+                    ifNode = ifNode.getNext().get();
+                else 
+                    return new ReturnType(ReturnType.Result.CONTINUE); 
+            }
+
+            return interpreteStatementList(ifNode.getStatements(), localVars);
+        }
+        else if (statement instanceof ReturnNode){
+            ReturnNode retNode = (ReturnNode) statement;
+
+            return new ReturnType(ReturnType.Result.RETURN, getIDT(retNode.getReturnValue(), localVars).getValue());
+        }
+        else if (statement instanceof WhileNode){
+            WhileNode whileNode = (WhileNode) statement;
+
+            while(getIDT(whileNode.getCondition(), localVars).toBoolean()){
+                interpreteStatementList(whileNode.getStatements(), localVars);
+            } 
+
+            return new ReturnType(ReturnType.Result.CONTINUE);
+        }
+        else{
+            try{
+                getIDT(statement, localVars); // Make sure that getIDT returns a valid value.
+                return new ReturnType(ReturnType.Result.CONTINUE);
+            }
+            catch (Exception e){
+                throw new Exception(e.getMessage() + "\nError procesing statement");
+            }
+        }
+    }
+
     public class LineManager{
         List<String> file;
         int lineNum;
@@ -634,67 +756,7 @@ public class Interpreter {
         }
     }
 
-    private ReturnType processStatement(HashMap<String, InterpreterDataType> localVars, StatementNode statement) throws Exception{
-        if(statement instanceof AssignmentNode){
-            // getIDT() already assigns the value to the variable in the AssigmentNode.
-            return new ReturnType(ReturnType.Result.NORMAL, getIDT((AssignmentNode) statement, localVars).getValue());
-        }
-        else if (statement instanceof BreakNode){
-            return new ReturnType(ReturnType.Result.BREAK);
-        }
-        else if (statement instanceof ContinueNode){
-            return new ReturnType(ReturnType.Result.CONTINUE);
-        }
-        else if (statement instanceof DeleteNode){
-            VariableReferenceNode deleteMe = ((DeleteNode) statement).getDeletedVariable();
-            HashMap<String, InterpreterDataType> tempMap;
-
-            if(localVars.containsKey(deleteMe.getName()))
-                tempMap = localVars;
-            else if (globalVars.containsKey(deleteMe.getName()))
-                tempMap = globalVars;
-            else
-                throw new Exception("The variable " + deleteMe.getName() + " cannot be deleted because it does not exist.");
-            
-            if (deleteMe.isArray() && tempMap.get(deleteMe.getName()) instanceof InterpreterArrayDataType){
-                InterpreterArrayDataType iadt = (InterpreterArrayDataType) tempMap.get(deleteMe.getName());
-                iadt.remove(getIDT(deleteMe.getIndex().get(), localVars).getValue());
-            }
-            else 
-                tempMap.remove(deleteMe.getName());
-
-            return new ReturnType(ReturnType.Result.NORMAL);
-        }
-        else if (statement instanceof DoWhileNode){
-            DoWhileNode doIt = (DoWhileNode) statement;
-            do{
-                interpreteStatementList(doIt.g);
-            }
-            return new ReturnType(ReturnType.Result.CONTINUE);
-        }
-        else if (statement instanceof ForNode){
-            return new ReturnType(ReturnType.Result.CONTINUE);
-        }
-        else if (statement instanceof ForEachNode){
-            return new ReturnType(ReturnType.Result.CONTINUE);
-        }
-        else if (statement instanceof FunctionCallNode){
-            runFunctionCall(((FunctionCallNode) statement), localVars);
-            return new ReturnType(ReturnType.Result.CONTINUE);
-        }
-        else if (statement instanceof IfNode){
-            return new ReturnType(ReturnType.Result.CONTINUE);
-        }
-        else if (statement instanceof ReturnNode){
-            return new ReturnType(ReturnType.Result.RETURN, getIDT(((ReturnNode)statement).getReturnValue(), localVars).getValue());
-        }
-        else if (statement instanceof WhileNode){
-            return new ReturnType(ReturnType.Result.CONTINUE);
-        }
-        else 
-            throw new Exception("Unexpected " + statement.getClass() + " in statements.");
-    }
-
+    
     // Quality of life methods:
     private InterpreterDataType toIDT(String value){
         return new InterpreterDataType(value);

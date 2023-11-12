@@ -21,12 +21,20 @@ public class InterpreterArrayDataType extends InterpreterDataType{
         return values.remove(key);
     }
 
+    public HashMap<String, InterpreterDataType> getMap(){
+        return values;
+    }
+
     public int getSize(){
         return values.size();
     }
 
     public void add(String hash, InterpreterDataType value){
         values.put(hash, value);
+    }
+
+    public void add(InterpreterDataType value){
+        values.put(Integer.toString(values.size() + 1), value);
     }
 
     public boolean contains(String key){

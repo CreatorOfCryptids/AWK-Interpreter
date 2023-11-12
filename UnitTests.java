@@ -759,12 +759,12 @@ public class UnitTests {
                                                 new ConstantNode(new Token(Token.Type.NUMBER, "420", 1, 1)));
         HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
 
-        Assert.assertEquals("420", inter.getIDT(an, vars).getValue());
+        Assert.assertEquals("420", inter.TEST_getIDT(an, vars).getValue());
 
         an  = new AssignmentNode(new VariableReferenceNode("testVar"), 
               new ConstantNode(new Token(Token.Type.NUMBER, "69", 1, 1)));
 
-        Assert.assertEquals("69", inter.getIDT(an, vars).getValue());
+        Assert.assertEquals("69", inter.TEST_getIDT(an, vars).getValue());
         Assert.assertEquals("69", vars.get("testVar").getValue());
     }
 
@@ -777,7 +777,7 @@ public class UnitTests {
         ConstantNode cn  = new ConstantNode(new Token(Token.Type.NUMBER, "666",1, 1));
         HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
 
-        Assert.assertEquals("666", inter.getIDT(cn, vars).getValue());
+        Assert.assertEquals("666", inter.TEST_getIDT(cn, vars).getValue());
     }
 
     @Test
@@ -789,7 +789,7 @@ public class UnitTests {
         FunctionCallNode fcn  = new FunctionCallNode("foo", new LinkedList<Node>());
         HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
 
-        Assert.assertEquals("", inter.getIDT(fcn, vars).getValue());
+        Assert.assertEquals("", inter.TEST_getIDT(fcn, vars).getValue());
     }
 
     @Test
@@ -802,7 +802,7 @@ public class UnitTests {
         HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
 
         try{
-            inter.getIDT(pn, vars);
+            inter.TEST_getIDT(pn, vars);
         }
         catch(Exception e){
             Assert.assertTrue(true);
@@ -820,13 +820,13 @@ public class UnitTests {
                                           new ConstantNode(new Token(Token.Type.NUMBER, "false",1, 1)));
         HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
 
-        Assert.assertEquals("true", inter.getIDT(tn, vars).getValue());
+        Assert.assertEquals("true", inter.TEST_getIDT(tn, vars).getValue());
 
         tn  = new TernaryNode(new ConstantNode(new Token(Token.Type.NUMBER, "true (ie, false :)",1, 1)),
               new ConstantNode(new Token(Token.Type.NUMBER, "true",1, 1)),
               new ConstantNode(new Token(Token.Type.NUMBER, "false",1, 1)));
 
-        Assert.assertEquals("false", inter.getIDT(tn, vars).getValue());
+        Assert.assertEquals("false", inter.TEST_getIDT(tn, vars).getValue());
     }
 
     @Test
@@ -839,12 +839,12 @@ public class UnitTests {
         HashMap<String, InterpreterDataType> vars = new HashMap<String, InterpreterDataType>();
         vars.put("test", toIDT("correct"));
 
-        Assert.assertEquals("correct", inter.getIDT(vrn, vars).getValue());
+        Assert.assertEquals("correct", inter.TEST_getIDT(vrn, vars).getValue());
 
         vrn  = new VariableReferenceNode("testArray", new ConstantNode(new Token(Token.Type.NUMBER, "2", 1, 1)));
         vars.put("testArray", new InterpreterArrayDataType(new String[]{"not this one", "Not this either", "yes this one", "Nope too far"}));
 
-        Assert.assertEquals("yes this one", inter.getIDT(vrn, vars).getValue());
+        Assert.assertEquals("yes this one", inter.TEST_getIDT(vrn, vars).getValue());
     }
 
     @Test
@@ -857,105 +857,105 @@ public class UnitTests {
         vars.put("testNum", toIDT(3));
 
         OperationNode on  = new OperationNode(toConstantNode(3), OperationNode.Operation.ADD, toConstantNode(3));
-        Assert.assertEquals("6.0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("6.0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.AND, toConstantNode(3));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode(0), OperationNode.Operation.AND, toConstantNode(3));
-        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode("This and "), OperationNode.Operation.CONCATENATION, toConstantNode("that"));
-        Assert.assertEquals("This and that", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("This and that", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(69), OperationNode.Operation.DIVIDE, toConstantNode(3));
-        Assert.assertEquals("23.0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("23.0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.EQ, toConstantNode(3));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode(3.0f), OperationNode.Operation.EQ, toConstantNode(3));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode("many"), OperationNode.Operation.EQ, toConstantNode("many"));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode("many"), OperationNode.Operation.EQ, toConstantNode("more"));
-        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.EXPONENT, toConstantNode(3));
-        Assert.assertEquals("27.0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("27.0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.GE, toConstantNode(3));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode(4), OperationNode.Operation.GE, toConstantNode(3));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode(2), OperationNode.Operation.GE, toConstantNode(3));
-        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.GT, toConstantNode(3));
-        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode(4), OperationNode.Operation.GT, toConstantNode(3));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode(2), OperationNode.Operation.GT, toConstantNode(3));
-        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.LE, toConstantNode(3));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode(4), OperationNode.Operation.LE, toConstantNode(3));
-        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode(2), OperationNode.Operation.LE, toConstantNode(3));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.LT, toConstantNode(3));
-        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode(4), OperationNode.Operation.LT, toConstantNode(3));
-        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode(2), OperationNode.Operation.LT, toConstantNode(3));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(0), OperationNode.Operation.IN, new VariableReferenceNode("tests"));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(new PatternNode(new Token(Token.Type.PATTERN, "[0-9]*.p", 0, 0)), OperationNode.Operation.MATCH, toConstantNode("hi 2gamma.p!"));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(4), OperationNode.Operation.MODULO, toConstantNode(3));
-        Assert.assertEquals("1.0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1.0", inter.TEST_getIDT(on, vars).getValue());
         
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.MULTIPLY, toConstantNode(3));
-        Assert.assertEquals("9.0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("9.0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.NE, toConstantNode(3));
-        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.TEST_getIDT(on, vars).getValue());
         on  = new OperationNode(toConstantNode(4), OperationNode.Operation.NE, toConstantNode(3));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(new PatternNode(new Token(Token.Type.PATTERN, "[1-9]*.p", 0, 0)), OperationNode.Operation.MATCH, toConstantNode("hi 2gamma.p!"));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.OR, toConstantNode(0));
-        Assert.assertEquals("1", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.SUBTRACT, toConstantNode(2));
-        Assert.assertEquals("1.0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("1.0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(3), OperationNode.Operation.NOT);
-        Assert.assertEquals("0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(new VariableReferenceNode("testNum"), OperationNode.Operation.POSTDEC);
-        Assert.assertEquals("3.0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("3.0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(new VariableReferenceNode("testNum"), OperationNode.Operation.POSTINC);
-        Assert.assertEquals("2.0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("2.0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(new VariableReferenceNode("testNum"), OperationNode.Operation.PREDEC);
-        Assert.assertEquals("2.0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("2.0", inter.TEST_getIDT(on, vars).getValue());
         
         on  = new OperationNode(new VariableReferenceNode("testNum"), OperationNode.Operation.PREINC);
-        Assert.assertEquals("3.0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("3.0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(69), OperationNode.Operation.UNARYNEG);
-        Assert.assertEquals("-69.0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("-69.0", inter.TEST_getIDT(on, vars).getValue());
 
         on  = new OperationNode(toConstantNode(-3), OperationNode.Operation.UNARYPOS);
-        Assert.assertEquals("3.0", inter.getIDT(on, vars).getValue());
+        Assert.assertEquals("3.0", inter.TEST_getIDT(on, vars).getValue());
     }
 
     @Test

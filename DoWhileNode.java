@@ -10,6 +10,14 @@ public class DoWhileNode extends StatementNode{
         this.statements = statements;
     }
 
+    public LinkedList<StatementNode> getStatements(){
+        return statements;
+    }
+
+    public Node getCondition(){
+        return condition;
+    }
+
     public String toString(){
         String retval = "do {\n";
         for (StatementNode sn : statements)

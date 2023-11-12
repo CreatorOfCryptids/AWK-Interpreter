@@ -40,6 +40,18 @@ public class IfNode extends StatementNode{
         this.next = Optional.empty();
     }
 
+    public Optional<IfNode> getNext(){
+        return next;
+    }
+
+    public Optional<Node> getCondition(){
+        return condition;
+    }
+
+    public LinkedList<StatementNode> getStatements(){
+        return statements;
+    }
+
     public String toString(){
         String retval = "";
         if (condition.isPresent()) // No condition means its the end else block, therefore, no "if".

@@ -21,6 +21,22 @@ public class ForNode extends StatementNode{
         this.statements = statements;
     }
 
+    public Node getInitialization(){
+        return initialization;
+    }
+
+    public Node getCondition(){
+        return condition;
+    }
+
+    public Node getIterator(){
+        return iterator;
+    }
+
+    public LinkedList<StatementNode> getStatements(){
+        return statements;
+    }
+
     public String toString(){
         String retval = "for(";
         retval += initialization.toString() + "; ";

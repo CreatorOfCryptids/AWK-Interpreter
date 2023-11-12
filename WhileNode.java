@@ -10,6 +10,14 @@ public class WhileNode extends StatementNode{
         this.statements = statements;
     }
 
+    public Node getCondition(){
+        return condition;
+    }
+
+    public LinkedList<StatementNode> getStatements(){
+        return statements;
+    }
+
     public String toString(){
         String retval = "while (" + condition.toString() + "){\n";
         for (StatementNode sn : statements)
