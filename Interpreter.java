@@ -590,8 +590,17 @@ public class Interpreter {
         functions.put("toupper", toBIFDN("toupper", temp, false, args));
     }
 
-    private ReturnType interpreteStatementList(LinkedList<StatementNode> statements, HashMap<String, InterpreterDataType> localVars){
-        return null;
+    private ReturnType processStatementList(LinkedList<StatementNode> statements, HashMap<String, InterpreterDataType> localVars) throws Exception{
+        ReturnType retval = new ReturnType(ReturnType.Result.NORMAL);
+
+        for(StatementNode s : statements){
+            retval = processStatement(localVars, s);
+
+            if (retval.getResult() != ReturnType.Result.NORMAL)
+                return retval;
+        }
+
+        return retval;
     }
 
     private ReturnType processStatement(HashMap<String, InterpreterDataType> localVars, StatementNode statement) throws Exception{
@@ -628,31 +637,36 @@ public class Interpreter {
         }
         else if (statement instanceof DoWhileNode){
             DoWhileNode doWhileNode = (DoWhileNode) statement;
+            ReturnType retval;
 
             do{
-                interpreteStatementList(doWhileNode.getStatements(), localVars);
+                retval = processStatementList(doWhileNode.getStatements(), localVars);
             } 
             while(getIDT(doWhileNode.getCondition(), localVars).toBoolean());
 
-            return new ReturnType(ReturnType.Result.CONTINUE);
+            return retval;
         }
         else if (statement instanceof ForNode){
+
             ForNode fNode = (ForNode) statement;
+            ReturnType retval;
 
             if (fNode.getInitialization() instanceof StatementNode)
                 processStatement(localVars, (StatementNode)fNode.getInitialization());
             
             while(getIDT(fNode.getCondition(), localVars).toBoolean()){
-                interpreteStatementList(fNode.getStatements(), localVars);
+                retval = processStatementList(fNode.getStatements(), localVars);
                 processStatement(localVars, (StatementNode) fNode.getIterator());
             }
 
-            return new ReturnType(ReturnType.Result.CONTINUE);
+            return retval;
         }
         else if (statement instanceof ForEachNode){
 
             ForEachNode forEachNode = (ForEachNode) statement;
             HashMap<String, InterpreterDataType> tempMap;
+            ReturnType retval = new ReturnType(ReturnType.Result.NORMAL);
+
 
             if(localVars.containsKey(forEachNode.getList().getName()) && localVars.get(forEachNode.getList().getName()) instanceof InterpreterArrayDataType){
                 tempMap = ((InterpreterArrayDataType) localVars.get(forEachNode.getList().getName())).getMap();
@@ -667,12 +681,12 @@ public class Interpreter {
             while(Integer.parseInt(current) < tempMap.size()){
                 InterpreterDataType temp = tempMap.get(current);
 
-                interpreteStatementList(forEachNode.getStatements(), localVars);
+                retval = processStatementList(forEachNode.getStatements(), localVars);
 
                 current = Integer.toString(Integer.parseInt(current) + 1);
             }
 
-            return new ReturnType(ReturnType.Result.CONTINUE);
+            return retval;
         }
         /* else if (statement instanceof FunctionCallNode){
         //     runFunctionCall(((FunctionCallNode) statement), localVars);
@@ -690,7 +704,7 @@ public class Interpreter {
                     return new ReturnType(ReturnType.Result.CONTINUE); 
             }
 
-            return interpreteStatementList(ifNode.getStatements(), localVars);
+            return processStatementList(ifNode.getStatements(), localVars);
         }
         else if (statement instanceof ReturnNode){
             ReturnNode retNode = (ReturnNode) statement;
@@ -701,7 +715,7 @@ public class Interpreter {
             WhileNode whileNode = (WhileNode) statement;
 
             while(getIDT(whileNode.getCondition(), localVars).toBoolean()){
-                interpreteStatementList(whileNode.getStatements(), localVars);
+                processStatementList(whileNode.getStatements(), localVars);
             } 
 
             return new ReturnType(ReturnType.Result.CONTINUE);
@@ -847,6 +861,6 @@ public class Interpreter {
     }
 
     public ReturnType TEST_interpreteStatementList(LinkedList<StatementNode> statements, HashMap<String, InterpreterDataType> localVars){
-        return interpreteStatementList(statements, localVars);
+        return processStatementList(statements, localVars);
     }
 }
