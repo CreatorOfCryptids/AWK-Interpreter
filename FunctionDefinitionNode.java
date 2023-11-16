@@ -11,6 +11,22 @@ public class FunctionDefinitionNode extends Node{
         this.statements = statementList;
     }
 
+    public String getName(){
+        return name;
+    }
+
+    public LinkedList<String> getParameters(){
+        return parameters;
+    }
+
+    public LinkedList<StatementNode> getStatements(){
+        return statements;
+    }
+
+    public boolean isVariadic(){
+        return false;
+    }
+
     public String toString(){
         String retVal = "function " + name + " (";
 
@@ -28,9 +44,5 @@ public class FunctionDefinitionNode extends Node{
             retVal += "NULL STATEMENTS\n";/**/
 
         return retVal + "}";
-    }
-
-    public String getName(){
-        return name;
     }
 }

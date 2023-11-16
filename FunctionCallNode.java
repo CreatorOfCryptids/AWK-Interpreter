@@ -10,6 +10,14 @@ public class FunctionCallNode extends StatementNode{
         this.parameters = parameters;
     }
 
+    public String getName(){
+        return functionName;
+    }
+
+    public LinkedList<Node> getParameters(){
+        return parameters;
+    }
+
     public String toString(){
         String retval = functionName;
         retval += "(";

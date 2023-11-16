@@ -7,13 +7,17 @@ public class awk {
     public static void main(String[] args) throws Exception{
         //Choose file.
         String programFileName;
-        /*if (args != null && args[0] != null)
-            fileName = args[0];
-        else*/
+        String inputFileName;
+        if (args.length>0)
+            programFileName = args[0];
+        else
             //fileName = "test2.txt";
-            programFileName = "Example2.awk";
+            programFileName = "testAWK1.awk";
 
-        String examinedFile = "";
+        if(args.length > 1)
+            inputFileName = args[1];
+        else
+            inputFileName = "";
 
         // Open file and pass to the lexer.
         Path myPath = Paths.get(programFileName);
@@ -28,16 +32,7 @@ public class awk {
         ProgramNode program = parser.parse();
 
         //Interpret
-        Interpreter interpreter = new Interpreter(program, examinedFile);
-        //interpreter.interpret();
-
-        //Print the tokens.
-        for(Token t: list){
-            System.out.print(t.toString() + " ");
-        }
-
-        System.out.println("\n\n" + program.toString());
-
-        System.out.println();
+        Interpreter interpreter = new Interpreter(program, inputFileName);
+        interpreter.interpretProgram();
     }
 }

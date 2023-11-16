@@ -20,6 +20,10 @@ public class BlockNode extends Node{
         return condition;
     }
 
+    public LinkedList<StatementNode> getStatements(){
+        return statements;
+    }
+
     public String toString() {
         String retVal = "";
         // Add the condition

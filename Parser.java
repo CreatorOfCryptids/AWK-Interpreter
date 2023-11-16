@@ -25,10 +25,6 @@ public class Parser {
             acceptSeperators();
             if (parseFunction(pNode)){}
             else if (parseAction(pNode)){}
-            /* There's a bug that causes an infinite loop if you add an extra '}' at the end of the input, and I was trying to fix it.
-            else if (h.matchAndRemove(Token.Type.RCURLY).isPresent())
-                throw new Exception("Unexpected '}' found at " + h.getErrorPosition());
-            //*/
             else
                 throw new Exception("Issue parsing after " + h.getErrorPosition());
             // If both return false, throw an exception
@@ -543,10 +539,7 @@ public class Parser {
         // Look for the starting boolean expression.
         Optional<Node> boolValue = parseOrLogic();
         // If there is no question mark, then it doesn't follow the pattern. Return the next layer down.
-        if (h.matchAndRemove(Token.Type.QUESTIONMARK).isEmpty()){
-            return boolValue;
-        }
-        else{
+        if (h.matchAndRemove(Token.Type.QUESTIONMARK).isPresent()){
             Optional<Node> trueCase = parseOperation();
             // It has to follow the ternary pattern, so if it doesn't, throw an error.
             if (h.matchAndRemove(Token.Type.COLON).isEmpty())
@@ -555,6 +548,8 @@ public class Parser {
             var retval = new TernaryNode(boolValue.get(), trueCase.get(), falseCase.get());
             return Optional.of(retval);
         }
+        else
+            return boolValue;
     }
 
     /**

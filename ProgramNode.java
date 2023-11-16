@@ -51,7 +51,19 @@ public class ProgramNode extends Node{
         return retVal;
     }
 
-    LinkedList<FunctionDefinitionNode> getFunctionNodes() {
+    public LinkedList<FunctionDefinitionNode> getFunctionNodes() {
         return functionNodes;
+    }
+
+    public LinkedList<Node> getBeginNodes(){
+        return beginBlockNodes;
+    }
+
+    public LinkedList<Node> getOtherNodes(){
+        return otherBlockNodes;
+    }
+
+    public LinkedList<Node> getEndNodes(){
+        return endBlockNodes;
     }
 }

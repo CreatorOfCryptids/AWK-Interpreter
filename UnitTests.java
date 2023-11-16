@@ -1,5 +1,8 @@
 import org.junit.Assert;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Optional;
@@ -26,6 +29,10 @@ public class UnitTests {
     String testParse = 
             "function add_three (number) {\nreturn number + 3\n}\nBEGIN {\nprint(\"Hello, world!\")\n}\n{\nprint(add_three(36))     # Outputs '''39'''\n}\nEND {\nprint(\"Goodbye\")\n}";
     String testTH = "test for test while hello test do test break examin if whatabout continue tryAn else butwhatif return andwecantforgetabout BEGIN waitand END\nbutwhatifthekeywordsaretogether print printf next in delete getline exit nextfile function\n\"What about a string literal?\" \"does it recognize \\\"ESCAPESEPTION!?!?!\\\"\" test andIShouldNotforget the \"\" `*patern*`\nI am going to try to string literal \"Is it working???\" banana ; fish \"What about \\\"NOW?\\\"\" What if I just \"\" \n>= ++ -- <= == != ^= %= *= 3/=4 += -= !~ && >> whatAboutACurveBall ||\n{ } [ ] ( ) $ ~ = < > ! + ^ - ? :test * / % ; curveBall | ,\n`test` `124` `next to``eachother` `` banananana`patterns|with&symbols`";
+
+    String fullAWKTest1 = "";
+    String fullAWKTest2 = "";
+    String fullAWKTest3 = "";
 
     
     @Test 
@@ -389,6 +396,30 @@ public class UnitTests {
     }
 
     @Test
+    public void PAR_parse3() throws Exception {
+        Lexer lexy = new Lexer("BEGIN {\n" + //
+                "\tprint \"Hello, world!\"\n" + //
+                "\texit\n" + //
+                "}\n" + //
+                "");
+        Parser test = new Parser(lexy.lex());
+        Assert.assertEquals("BEGIN { print \"Hello, world!\"\nexit}", test.parse().toString());
+
+        String programFileName = "testAWK1.awk";
+
+        Path myPath = Paths.get(programFileName);
+        String file = new String(Files.readAllBytes(myPath));
+
+        Lexer lex = new Lexer(file);
+        LinkedList<Token> list = lex.lex();
+
+        Parser parser = new Parser(list);
+        ProgramNode program = parser.parse();
+
+        Assert.assertEquals("BEGIN{print \"Hello, world!\"}", program.toString());
+    }
+
+    @Test
     public void PAR_parseIf() throws Exception{
         Lexer lex = new Lexer("BEGIN{if(1+1==2){doThings()}else if(44>3) doOtherThings() else{doThing(); if(0) doThingz()}}");
         Parser test = new Parser(lex.lex());
@@ -463,6 +494,14 @@ public class UnitTests {
     }
 
     @Test
+    public void PAR_parseFunctionCall() throws Exception{
+        Lexer lex = new Lexer("BEGIN {\n\tprint \"Hello, world!\"\n}\n");
+        Parser test = new Parser(lex.lex());
+
+        Assert.assertEquals("BEGIN {print(\"Hello, world!,\")\n exit()}", test.parse().toString());
+    }
+
+    @Test
     public void PNODE_toString() throws Exception {
         ProgramNode testNode = new ProgramNode();
         Assert.assertEquals("", testNode.toString());
@@ -522,9 +561,11 @@ public class UnitTests {
 
     @Test
     public void INTP() throws Exception{
-        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Lexer lex = new Lexer("BEGIN {print 2  \" \" \"banana\"}");
         Parser parse = new Parser(lex.lex());
-        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");    
+        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+
+        inter.interpretProgram();
     }
     
     @Test
@@ -549,7 +590,7 @@ public class UnitTests {
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("0", new InterpreterDataType("return value :)"));
         var test = new BuiltInFunctionDefinitionNode("testFoo", (hm)->(hm.get("0").getValue()), false, new LinkedList<String>());
-        Assert.assertEquals("return value :)", test.testExecute(testmap));
+        Assert.assertEquals("return value :)", test.execute(testmap));
     }
 
     @Test
@@ -562,7 +603,7 @@ public class UnitTests {
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("array", new InterpreterArrayDataType(new String[]{"test"}));
 
-        Assert.assertEquals("", test.testExecute(testmap));
+        Assert.assertEquals("", test.execute(testmap));
     }
 
     @Test
@@ -576,7 +617,7 @@ public class UnitTests {
         testmap.put("array", new InterpreterArrayDataType(new String[]{"test"}));
         testmap.put("format", toIDT("%s"));
 
-        Assert.assertEquals("", test.testExecute(testmap));
+        Assert.assertEquals("", test.execute(testmap));
     }
 
     @Test
@@ -589,7 +630,7 @@ public class UnitTests {
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         //testmap.put();
 
-        Assert.assertEquals("1", test.testExecute(testmap));
+        Assert.assertEquals("1", test.execute(testmap));
     }
 
     @Test
@@ -602,7 +643,7 @@ public class UnitTests {
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         //testmap.put();
 
-        Assert.assertEquals("1", test.testExecute(testmap));
+        Assert.assertEquals("1", test.execute(testmap));
     }
 
     @Test
@@ -618,7 +659,7 @@ public class UnitTests {
         testmap.put("regexp", toIDT("(@)"));
         testmap.put("replacement", toIDT("\\$"));
 
-        Assert.assertEquals("1", test.testExecute(testmap));
+        Assert.assertEquals("1", test.execute(testmap));
         Assert.assertEquals("$ replace this please ->>$<<- pleeeeeease", inter.getGlobals().get("test").getValue());
     }
 
@@ -633,7 +674,7 @@ public class UnitTests {
         testmap.put("string", toIDT(" can you find the 1@??????"));
         testmap.put("regexp", toIDT("[0-9]@*"));
 
-        Assert.assertEquals("19", test.testExecute(testmap));
+        Assert.assertEquals("19", test.execute(testmap));
     }
 
     @Test
@@ -649,7 +690,7 @@ public class UnitTests {
         testmap.put("replacement", toIDT("ith"));
         testmap.put("target", toIDT("test"));
 
-        Assert.assertEquals("1", test.testExecute(testmap));
+        Assert.assertEquals("1", test.execute(testmap));
         Assert.assertEquals("wither, water, everywhere", inter.getGlobals().get("test").getValue());
     }
 
@@ -665,7 +706,7 @@ public class UnitTests {
         testmap.put("in", toIDT("wheres the @?"));
 
 
-        Assert.assertEquals("11", test.testExecute(testmap));
+        Assert.assertEquals("11", test.execute(testmap));
     }
 
     @Test
@@ -678,7 +719,7 @@ public class UnitTests {
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("string", toIDT("How long?"));
 
-        Assert.assertEquals("9", test.testExecute(testmap));
+        Assert.assertEquals("9", test.execute(testmap));
     }
 
     @Test
@@ -692,7 +733,7 @@ public class UnitTests {
         testmap.put("string", toIDT("Can you seperate these?"));
         testmap.put("array", toIDT("array"));
 
-        Assert.assertEquals("4", test.testExecute(testmap));
+        Assert.assertEquals("4", test.execute(testmap));
     }
 
     @Test
@@ -706,7 +747,7 @@ public class UnitTests {
         testmap.put("array", new InterpreterArrayDataType(new String[]{"test"}));
         testmap.put("format", toIDT("%s"));
 
-        Assert.assertEquals("test", test.testExecute(testmap));
+        Assert.assertEquals("test", test.execute(testmap));
     }
     
     @Test
@@ -720,7 +761,7 @@ public class UnitTests {
         testmap.put("string", toIDT("this is a test"));
         testmap.put("start", toIDT(10));
 
-        Assert.assertEquals("test", test.testExecute(testmap));
+        Assert.assertEquals("test", test.execute(testmap));
     }
 
     @Test
@@ -733,7 +774,7 @@ public class UnitTests {
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("string", toIDT("make This lOWER"));
 
-        Assert.assertEquals("make this lower", test.testExecute(testmap));
+        Assert.assertEquals("make this lower", test.execute(testmap));
     }
 
     @Test
@@ -746,7 +787,7 @@ public class UnitTests {
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
         testmap.put("string", toIDT("make this UPPER"));
 
-        Assert.assertEquals("MAKE THIS UPPER", test.testExecute(testmap));
+        Assert.assertEquals("MAKE THIS UPPER", test.execute(testmap));
     }
 
     @Test
@@ -782,7 +823,8 @@ public class UnitTests {
 
     @Test
     public void INTP_getIDT_FunctionCall() throws Exception{
-        Lexer lex = new Lexer("{print $2  \" \"$2}");
+        Lexer lex = new Lexer("{print $2  \" \"$2}\n" + 
+                              "function foo() {return \"\"}");
         Parser parse = new Parser(lex.lex());
         Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
 

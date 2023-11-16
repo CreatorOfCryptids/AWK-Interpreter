@@ -13,12 +13,11 @@ public class BuiltInFunctionDefinitionNode extends FunctionDefinitionNode{
         isVariadic = variadic;
     }
 
-    public boolean getIsVariadic(){
+    public boolean isVariadic(){
         return isVariadic;
     }
 
-    public String testExecute(HashMap<String, InterpreterDataType> input){
-        String s = execute.apply(input);
-        return s;
+    public String execute(HashMap<String, InterpreterDataType> input){
+        return execute.apply(input);
     }
 }

@@ -5,7 +5,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-//import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -15,8 +14,12 @@ public class Interpreter {
     private LineManager lm;
     private HashMap<String, InterpreterDataType> globalVars;
     private HashMap<String, FunctionDefinitionNode> functions;
+    private ProgramNode prog;
 
     Interpreter(ProgramNode pNode, String filePath) throws Exception{
+
+        prog = pNode;
+
         globalVars = new HashMap<String, InterpreterDataType>();
         globalVars.put("FS", toIDT(" "));
         globalVars.put("OFMT", toIDT("%.6g"));
@@ -41,347 +44,14 @@ public class Interpreter {
             lm = new LineManager(lines);
         }
         catch(IOException e){
-            //throw new Exception("TEST: Files didn't work");
             lm = new LineManager(new LinkedList<String>());
-        }/**/
+        }
         functions = new HashMap<String, FunctionDefinitionNode>();
-        LinkedList<FunctionDefinitionNode> functionList = pNode.getFunctionNodes();
+        LinkedList<FunctionDefinitionNode> functionList = prog.getFunctionNodes();
         for(FunctionDefinitionNode n : functionList)
             functions.put(n.getName(), n);
 
         initializeBIFDNs();
-    }
-
-    private InterpreterDataType getIDT(Node n, HashMap<String, InterpreterDataType> localVar) throws Exception{
-        //
-        if(n instanceof AssignmentNode){
-            AssignmentNode assignment = ((AssignmentNode)n);
-            Node left = assignment.getLeft();
-            String variableName;
-            InterpreterDataType retval;
-
-            if(left instanceof VariableReferenceNode){
-                variableName = ((VariableReferenceNode) left).getName();
-                retval = getIDT(assignment.getRight(), localVar);
-                // Replace it in the HashMap, if it already exists, otherwize, add to map.
-                if(localVar.replace(variableName, retval) == null)
-                    localVar.put(variableName, retval);
-            }
-            else if (left instanceof OperationNode && ((OperationNode)left).getOperation() == OperationNode.Operation.DOLLAR){
-                variableName = '$' + getIDT(((OperationNode)left).getLeft(), localVar).getValue();
-                retval = getIDT(assignment.getRight(), localVar);
-                if(localVar.replace(variableName, retval) == null)
-                    localVar.put(variableName, retval);
-            }
-            else
-                throw new Exception("Expected a Variable Reference as left node of Assignment.");
-            
-            return retval;
-        }
-        else if(n instanceof ConstantNode){
-            ConstantNode constant = ((ConstantNode) n);
-            return toIDT(constant.getValue());
-        }
-        else if(n instanceof FunctionCallNode){
-            FunctionCallNode funcitionCall = ((FunctionCallNode) n);
-            return toIDT(runFunctionCall(funcitionCall, localVar));
-        }
-        else if(n instanceof PatternNode){
-            throw new Exception("Unexpected Pattern");
-        }
-        else if(n instanceof TernaryNode){
-            TernaryNode ternary = (TernaryNode) n;
-            InterpreterDataType booleanExpression = getIDT(ternary.getExpression(), localVar);
-            // I felt that using a ternary was fitting. 
-            return booleanExpression.toBoolean() ? getIDT(ternary.getTrueCase(), localVar) : getIDT(ternary.getFalseCase(), localVar);
-        }
-        else if(n instanceof VariableReferenceNode){
-            VariableReferenceNode varReference = (VariableReferenceNode) n;
-            if (varReference.isArray()){
-                // Get IDT from HashMaps.
-                InterpreterDataType temp;
-
-                if (localVar.containsKey(varReference.getName()))
-                    temp = localVar.get(varReference.getName());
-                else if (globalVars.containsKey(varReference.getName()))
-                    temp = globalVars.get(varReference.getName());
-                else 
-                    throw new Exception("The variable " + varReference.getName() + " was never initialized.");
-                
-                // Make sure the the IDT is an array.
-                InterpreterArrayDataType iadt;
-                if (temp instanceof InterpreterArrayDataType)
-                    iadt = (InterpreterArrayDataType) temp;
-                else
-                    throw new Exception("The variable " + varReference.getName() + " cannot be called as an array entry.");
-
-                // Get correct entry
-                InterpreterDataType entryIndexIDT = getIDT(varReference.getIndex().get(), localVar);
-                String index = entryIndexIDT.getValue();
-                if (iadt.contains(index))
-                    return iadt.getValue(index);
-                else
-                    throw new Exception("The array " + varReference.getName() + " does not contain an entry in the index " + index);
-            }
-            else{
-                if(localVar.containsKey(varReference.getName())){
-                    return localVar.get(varReference.getName());
-                }
-                else if (globalVars.containsKey(varReference.getName())){
-                    return globalVars.get(varReference.getName());
-                }
-                else{
-                    throw new Exception("The variable " + varReference.getName() + " was never initialized.");
-                }
-            }
-        }
-        else if(n instanceof OperationNode){
-
-            OperationNode operation = (OperationNode) n;
-            InterpreterDataType leftIDT;
-            // Looking at the left throws an exception if it's a pattern node, but if the left is a pattern node then it might be a match/notmatch.
-            try{
-                leftIDT = getIDT(operation.getLeft(), localVar);
-            }
-            catch(Exception e){
-                if (operation.getOperation() == OperationNode.Operation.MATCH && operation.hasRight()){
-                    if (!(operation.getLeft() instanceof PatternNode))
-                            throw new Exception("Expected a pattern token.");
-
-                        Pattern mPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
-                        Matcher mMatcher = mPattern.matcher(getIDT(operation.getRight().get(), localVar).getValue());
-
-                        return toIDT(mMatcher.find());
-                }
-                else if (operation.getOperation() == OperationNode.Operation.NOTMATCH && operation.hasRight()){
-                    if (!(operation.getLeft() instanceof PatternNode))
-                            throw new Exception("Expected a pattern token.");
-
-                        Pattern nmPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
-                        Matcher nmMatcher = nmPattern.matcher(getIDT(operation.getRight().get(), localVar).getValue());
-
-                        return toIDT(!nmMatcher.find());
-                }
-                else{
-                    throw e;
-                }
-            }
-
-            if (operation.hasRight()){
-                InterpreterDataType rightIDT = getIDT(operation.getRight().get(), localVar);
-                switch (operation.getOperation()){
-                    case ADD:
-                        return toIDT(leftIDT.toFloat() + rightIDT.toFloat());
-
-                    case AND:
-                        return toIDT(leftIDT.toBoolean() && rightIDT.toBoolean());
-
-                    case CONCATENATION:
-                        return toIDT(leftIDT.getValue() + rightIDT.getValue());
-
-                    case DIVIDE:
-                        return toIDT(leftIDT.toFloat() / rightIDT.toFloat());
-
-                    case EQ:
-                        // Use string compare because if they're both the same number value they will still have the same string.
-                        try{
-                            return toIDT(leftIDT.toFloat() == rightIDT.toFloat());
-                        }  
-                        catch(Exception e){
-                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) == 0);
-                        }
-
-                    case EXPONENT:
-                        return toIDT((float) Math.pow(leftIDT.toFloat(), rightIDT.toFloat()));
-
-                    case GE:
-                        // If one isn't a float, then it will throw and exception. So then we should just compare as strings.
-                        try{
-                            return toIDT(leftIDT.toFloat() >= rightIDT.toFloat());
-                        }  
-                        catch(Exception e){
-                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) >= 0);
-                        }
-
-                    case GT:
-                        try{
-                            return toIDT(leftIDT.toFloat() > rightIDT.toFloat());
-                        }  
-                        catch(Exception e){
-                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) > 0);
-                        }
-
-                    case LE:
-                        try{
-                            return toIDT(leftIDT.toFloat() <= rightIDT.toFloat());
-                        }  
-                        catch(Exception e){
-                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) <= 0);
-                        }
-                    
-                    case LT:
-                        try{
-                            return toIDT(leftIDT.toFloat() < rightIDT.toFloat());
-                        }  
-                        catch(Exception e){
-                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) > 0);
-                        }
-
-                    case IN:
-                        // TODO
-                        if(operation.getRight().get() instanceof VariableReferenceNode){
-                            String rightVarName = ((VariableReferenceNode) operation.getRight().get()).getName();
-                            if (localVar.containsKey(rightVarName) && localVar.get(rightVarName) instanceof InterpreterArrayDataType){
-                                return toIDT(((InterpreterArrayDataType) localVar.get(rightVarName)).contains(leftIDT.getValue()));
-                            }
-                            else if(globalVars.containsKey(rightVarName) && globalVars.get(rightVarName) instanceof InterpreterArrayDataType){
-                                return toIDT(((InterpreterArrayDataType) globalVars.get(rightVarName)).contains(leftIDT.getValue()));
-                            }
-                            else 
-                                throw new Exception("The variable " + rightVarName + "could not be found.");
-                        }
-                        else
-                            throw new Exception("Expected two variable references");
-                    
-                    /*case MATCH:
-                        if (!(operation.getLeft() instanceof PatternNode))
-                            throw new Exception("Expected a pattern token.");
-
-                        Pattern mPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
-                        Matcher mMatcher = mPattern.matcher(rightIDT.getValue());
-
-                        return toIDT(mMatcher.find());*
-                    case NOTMATCH:
-                        if (!(operation.getLeft() instanceof PatternNode))
-                            throw new Exception("Expected a pattern token.");
-
-                        Pattern nmPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
-                        Matcher nmMatcher = nmPattern.matcher(rightIDT.getValue());
-
-                        return toIDT(!nmMatcher.find());
-                        /**/
-                    case MODULO:
-                        return toIDT(leftIDT.toFloat() % rightIDT.toFloat());
-
-                    case MULTIPLY:
-                        return toIDT(leftIDT.toFloat() * rightIDT.toFloat());
-
-                    case NE:
-                        try{
-                            return toIDT(leftIDT.toFloat() != rightIDT.toFloat());
-                        }  
-                        catch(Exception e){
-                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) != 0);
-                        }
-                    
-                    case OR:
-                        return toIDT(leftIDT.toBoolean() || rightIDT.toBoolean());
-
-                    case SUBTRACT:
-                        return toIDT(leftIDT.toFloat() - rightIDT.toFloat());
-
-                    default:
-                        throw new Exception("Unexpected " + operation.getOperation() + "found");
-                }
-            }
-            else {
-                if (operation.getOperation() == OperationNode.Operation.DOLLAR){
-                    InterpreterDataType retval = globalVars.get(leftIDT.toString());
-                    if (retval == null){
-                        throw new Exception("The item $" + leftIDT.toString() + " does not exist in this enviornment.");
-                    }
-                    return retval;
-                }
-                else if (operation.getOperation() == OperationNode.Operation.NOT){
-                    // If the operation returns true return a false IDT, otherwize return true.
-                    return leftIDT.toBoolean() ? toIDT("0") : toIDT("1");
-                }
-                else if (operation.getOperation() == OperationNode.Operation.POSTDEC){
-                    if (operation.getLeft() instanceof VariableReferenceNode){
-                        InterpreterDataType retval = toIDT(leftIDT.toFloat());
-                        VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
-
-                        if (localVar.containsKey(var.getName()))
-                            localVar.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
-                        else if (globalVars.containsKey(var.getName()))
-                            globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
-                        else
-                            throw new Exception("The variable " + var.getName() + " has not been initialized");
-
-                        return retval;
-                        }
-                    else
-                        throw new Exception("The post-dec operator can only be used on a variable");
-                }
-                else if (operation.getOperation() == OperationNode.Operation.POSTINC){
-                    if (operation.getLeft() instanceof VariableReferenceNode){
-                        InterpreterDataType retval = toIDT(leftIDT.toFloat());
-                        VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
-
-                        if (localVar.containsKey(var.getName()))
-                            localVar.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
-                        else if (globalVars.containsKey(var.getName()))
-                            globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
-                        else
-                            throw new Exception("The variable " + var.getName() + " has not been initialized");
-
-                        return retval;
-                    }
-                    else
-                        throw new Exception("The post-inc operator can only be used on a variable");
-                }
-                else if (operation.getOperation() == OperationNode.Operation.PREDEC){
-                    if (operation.getLeft() instanceof VariableReferenceNode){
-                        InterpreterDataType retval = toIDT(leftIDT.toFloat() - 1);
-                        VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
-
-                        if (localVar.containsKey(var.getName()))
-                            localVar.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
-                        else if (globalVars.containsKey(var.getName()))
-                            globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
-                        else
-                            throw new Exception("The variable " + var.getName() + " has not been initialized");
-
-                        return retval;
-                    }
-                    else
-                        throw new Exception("The pre-dec operator can only be used on a variable");
-                }
-                else if (operation.getOperation() == OperationNode.Operation.PREINC){
-                    if (operation.getLeft() instanceof VariableReferenceNode){
-                        InterpreterDataType retval = toIDT(leftIDT.toFloat() + 1);
-                        VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
-
-                        if (localVar.containsKey(var.getName()))
-                            localVar.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
-                        else if (globalVars.containsKey(var.getName()))
-                            globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
-                        else
-                            throw new Exception("The variable " + var.getName() + " has not been initialized");
-                        
-                        return retval;
-                    }
-                    else
-                        throw new Exception("The pre-inc operator can only be used on a variable");
-                }
-                else if (operation.getOperation() == OperationNode.Operation.UNARYNEG){
-                    return toIDT(leftIDT.toFloat() < 0 ? leftIDT.toFloat() : -leftIDT.toFloat());
-                }
-                else if (operation.getOperation() == OperationNode.Operation.UNARYPOS){
-                    return toIDT(leftIDT.toFloat() < 0 ? -leftIDT.toFloat() : leftIDT.toFloat());
-                }                        
-                else
-                    throw new Exception("Unexpected " + operation.getOperation() + "found");
-            }
-        }
-        else {
-            throw new Exception("Unrecognized node passed to getIDT.");
-        }
-    }
-
-    private String runFunctionCall(FunctionCallNode fcn, HashMap<String, InterpreterDataType> localVars){
-        // TODO: later
-        return "";
     }
 
     private void initializeBIFDNs(){
@@ -590,7 +260,32 @@ public class Interpreter {
         functions.put("toupper", toBIFDN("toupper", temp, false, args));
     }
 
-    private ReturnType processStatementList(LinkedList<StatementNode> statements, HashMap<String, InterpreterDataType> localVars) throws Exception{
+    public void interpretProgram() throws Exception{
+        // BeginNodes
+        LinkedList<Node> blocks = prog.getBeginNodes();
+        // TODO: Is this supposed to accept only BlockNodes, or only have BlockNodes in the first place?
+        for(Node b : blocks)
+            interpretBlock((BlockNode) b);
+
+        blocks = prog.getOtherNodes();
+        for(Node b : blocks){
+            lm.splitAndAssign();
+            interpretBlock((BlockNode) b);
+        }
+
+        blocks = prog.getEndNodes();
+        for(Node b : blocks)
+            interpretBlock((BlockNode) b);
+    }
+
+    private void interpretBlock(BlockNode block) throws Exception{
+        if(block.getCondition().isEmpty() || getIDT(block.getCondition().get(), globalVars).toBoolean()){
+            // TODO: This can't be right.
+            processStatementList(block.getStatements(), new HashMap<String, InterpreterDataType>());
+        }
+    }
+
+    private ReturnType processStatementList(LinkedList<StatementNode> statements, HashMap<String, InterpreterDataType> localVars) throws Exception {
         for(StatementNode s : statements){
             ReturnType retval = processStatement(localVars, s);    // Store the result to check and return if needed.
 
@@ -602,11 +297,6 @@ public class Interpreter {
     }
 
     private ReturnType processStatement(HashMap<String, InterpreterDataType> localVars, StatementNode statement) throws Exception{
-        /* if(statement instanceof AssignmentNode){
-        //     // getIDT() already assigns the value to the variable in the AssigmentNode.
-        //     return new ReturnType(ReturnType.Result.NORMAL, getIDT((AssignmentNode) statement, localVars).getValue());
-        // }
-        // else */
         if (statement instanceof BreakNode){
             return new ReturnType(ReturnType.Result.BREAK);
         }
@@ -680,7 +370,7 @@ public class Interpreter {
 
             String current = "0";
             while(Integer.parseInt(current) < tempMap.size()){
-                InterpreterDataType temp = tempMap.get(current);    // Store the current array index
+                localVars.put(forEachNode.getIterator().getName(), tempMap.get(current));    // Store the current array index into the iterator.
 
                 retval = processStatementList(forEachNode.getStatements(), localVars);
 
@@ -724,14 +414,361 @@ public class Interpreter {
             return retval;
         }
         else{
-            try{
-                getIDT(statement, localVars); // Make sure that getIDT returns a valid value.
-                return new ReturnType(ReturnType.Result.NORMAL);
+            getIDT(statement, localVars); // Make sure that getIDT returns a valid value.
+            return new ReturnType(ReturnType.Result.NORMAL);
+        }
+    }
+
+    private InterpreterDataType getIDT(Node n, HashMap<String, InterpreterDataType> localVar) throws Exception{
+        //
+        if(n instanceof AssignmentNode){
+            AssignmentNode assignment = ((AssignmentNode)n);
+            Node left = assignment.getLeft();
+            String variableName;
+            InterpreterDataType retval;
+
+            if(left instanceof VariableReferenceNode){
+                variableName = ((VariableReferenceNode) left).getName();
+                retval = getIDT(assignment.getRight(), localVar);
+                // Replace it in the HashMap, if it already exists, otherwize, add to map.
+                if(localVar.replace(variableName, retval) == null)
+                    localVar.put(variableName, retval);
             }
-            catch (Exception e){
-                throw new Exception(e.getMessage() + "\nError procesing statement");
+            else if (left instanceof OperationNode && ((OperationNode)left).getOperation() == OperationNode.Operation.DOLLAR){
+                variableName = '$' + getIDT(((OperationNode)left).getLeft(), localVar).getValue();
+                retval = getIDT(assignment.getRight(), localVar);
+                if(localVar.replace(variableName, retval) == null)
+                    localVar.put(variableName, retval);
+            }
+            else
+                throw new Exception("Expected a Variable Reference as left node of Assignment.");
+            
+            return retval;
+        }
+        else if(n instanceof ConstantNode){
+            ConstantNode constant = ((ConstantNode) n);
+            return toIDT(constant.getValue());
+        }
+        else if(n instanceof FunctionCallNode){
+            FunctionCallNode funcitionCall = ((FunctionCallNode) n);
+            return toIDT(runFunctionCall(funcitionCall, localVar));
+        }
+        else if(n instanceof PatternNode){
+            throw new Exception("Unexpected Pattern");
+        }
+        else if(n instanceof TernaryNode){
+            TernaryNode ternary = (TernaryNode) n;
+            InterpreterDataType booleanExpression = getIDT(ternary.getExpression(), localVar);
+            // I felt that using a ternary was fitting. 
+            return booleanExpression.toBoolean() ? getIDT(ternary.getTrueCase(), localVar) : getIDT(ternary.getFalseCase(), localVar);
+        }
+        else if(n instanceof VariableReferenceNode){
+            VariableReferenceNode varReference = (VariableReferenceNode) n;
+            if (varReference.isArray()){
+                // Get IDT from HashMaps.
+                InterpreterDataType temp;
+
+                if (localVar.containsKey(varReference.getName()))
+                    temp = localVar.get(varReference.getName());
+                else if (globalVars.containsKey(varReference.getName()))
+                    temp = globalVars.get(varReference.getName());
+                else 
+                    throw new Exception("The variable " + varReference.getName() + " was never initialized.");
+                
+                // Make sure the the IDT is an array.
+                InterpreterArrayDataType iadt;
+                if (temp instanceof InterpreterArrayDataType)
+                    iadt = (InterpreterArrayDataType) temp;
+                else
+                    throw new Exception("The variable " + varReference.getName() + " cannot be called as an array entry.");
+
+                // Get correct entry
+                InterpreterDataType entryIndexIDT = getIDT(varReference.getIndex().get(), localVar);
+                String index = entryIndexIDT.getValue();
+                if (iadt.contains(index))
+                    return iadt.getValue(index);
+                else
+                    throw new Exception("The array " + varReference.getName() + " does not contain an entry in the index " + index);
+            }
+            else{
+                if(localVar.containsKey(varReference.getName())){
+                    return localVar.get(varReference.getName());
+                }
+                else if (globalVars.containsKey(varReference.getName())){
+                    return globalVars.get(varReference.getName());
+                }
+                else{
+                    throw new Exception("The variable " + varReference.getName() + " was never initialized.");
+                }
             }
         }
+        else if(n instanceof OperationNode){
+
+            OperationNode operation = (OperationNode) n;
+            InterpreterDataType leftIDT;
+            // Looking at the left throws an exception if it's a pattern node, but if the left is a pattern node then it might be a match/notmatch.
+            try{
+                leftIDT = getIDT(operation.getLeft(), localVar);
+            }
+            catch(Exception e){
+                if (operation.getOperation() == OperationNode.Operation.MATCH && operation.hasRight()){
+                    if (!(operation.getLeft() instanceof PatternNode))
+                            throw new Exception("Expected a pattern token.");
+
+                        Pattern mPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
+                        Matcher mMatcher = mPattern.matcher(getIDT(operation.getRight().get(), localVar).getValue());
+
+                        return toIDT(mMatcher.find());
+                }
+                else if (operation.getOperation() == OperationNode.Operation.NOTMATCH && operation.hasRight()){
+                    if (!(operation.getLeft() instanceof PatternNode))
+                            throw new Exception("Expected a pattern token.");
+
+                        Pattern nmPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
+                        Matcher nmMatcher = nmPattern.matcher(getIDT(operation.getRight().get(), localVar).getValue());
+
+                        return toIDT(!nmMatcher.find());
+                }
+                else{
+                    throw e;
+                }
+            }
+
+            if (operation.hasRight()){
+                InterpreterDataType rightIDT = getIDT(operation.getRight().get(), localVar);
+                switch (operation.getOperation()){
+                    case ADD:
+                        return toIDT(leftIDT.toFloat() + rightIDT.toFloat());
+
+                    case AND:
+                        return toIDT(leftIDT.toBoolean() && rightIDT.toBoolean());
+
+                    case CONCATENATION:
+                        return toIDT(leftIDT.getValue() + rightIDT.getValue());
+
+                    case DIVIDE:
+                        return toIDT(leftIDT.toFloat() / rightIDT.toFloat());
+
+                    case EQ:
+                        // Use string compare because if they're both the same number value they will still have the same string.
+                        try{
+                            return toIDT(leftIDT.toFloat() == rightIDT.toFloat());
+                        }  
+                        catch(Exception e){
+                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) == 0);
+                        }
+
+                    case EXPONENT:
+                        return toIDT((float) Math.pow(leftIDT.toFloat(), rightIDT.toFloat()));
+
+                    case GE:
+                        // If one isn't a float, then it will throw and exception. So then we should just compare as strings.
+                        try{
+                            return toIDT(leftIDT.toFloat() >= rightIDT.toFloat());
+                        }  
+                        catch(Exception e){
+                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) >= 0);
+                        }
+
+                    case GT:
+                        try{
+                            return toIDT(leftIDT.toFloat() > rightIDT.toFloat());
+                        }  
+                        catch(Exception e){
+                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) > 0);
+                        }
+
+                    case LE:
+                        try{
+                            return toIDT(leftIDT.toFloat() <= rightIDT.toFloat());
+                        }  
+                        catch(Exception e){
+                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) <= 0);
+                        }
+                    
+                    case LT:
+                        try{
+                            return toIDT(leftIDT.toFloat() < rightIDT.toFloat());
+                        }  
+                        catch(Exception e){
+                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) > 0);
+                        }
+
+                    case IN:
+                        if(operation.getRight().get() instanceof VariableReferenceNode){
+                            String rightVarName = ((VariableReferenceNode) operation.getRight().get()).getName();
+                            if (localVar.containsKey(rightVarName) && localVar.get(rightVarName) instanceof InterpreterArrayDataType){
+                                return toIDT(((InterpreterArrayDataType) localVar.get(rightVarName)).contains(leftIDT.getValue()));
+                            }
+                            else if(globalVars.containsKey(rightVarName) && globalVars.get(rightVarName) instanceof InterpreterArrayDataType){
+                                return toIDT(((InterpreterArrayDataType) globalVars.get(rightVarName)).contains(leftIDT.getValue()));
+                            }
+                            else 
+                                throw new Exception("The variable " + rightVarName + "could not be found.");
+                        }
+                        else
+                            throw new Exception("Expected two variable references");
+                    
+                    /*case MATCH:
+                        if (!(operation.getLeft() instanceof PatternNode))
+                            throw new Exception("Expected a pattern token.");
+
+                        Pattern mPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
+                        Matcher mMatcher = mPattern.matcher(rightIDT.getValue());
+
+                        return toIDT(mMatcher.find());*
+                    case NOTMATCH:
+                        if (!(operation.getLeft() instanceof PatternNode))
+                            throw new Exception("Expected a pattern token.");
+
+                        Pattern nmPattern = Pattern.compile(((PatternNode) operation.getLeft()).getPattern());
+                        Matcher nmMatcher = nmPattern.matcher(rightIDT.getValue());
+
+                        return toIDT(!nmMatcher.find());
+                        /**/
+                    case MODULO:
+                        return toIDT(leftIDT.toFloat() % rightIDT.toFloat());
+
+                    case MULTIPLY:
+                        return toIDT(leftIDT.toFloat() * rightIDT.toFloat());
+
+                    case NE:
+                        try{
+                            return toIDT(leftIDT.toFloat() != rightIDT.toFloat());
+                        }  
+                        catch(Exception e){
+                            return toIDT(leftIDT.getValue().compareTo(rightIDT.getValue()) != 0);
+                        }
+                    
+                    case OR:
+                        return toIDT(leftIDT.toBoolean() || rightIDT.toBoolean());
+
+                    case SUBTRACT:
+                        return toIDT(leftIDT.toFloat() - rightIDT.toFloat());
+
+                    default:
+                        throw new Exception("Unexpected " + operation.getOperation() + "found");
+                }
+            }
+            else {
+                if (operation.getOperation() == OperationNode.Operation.DOLLAR){
+                    InterpreterDataType retval = globalVars.get(leftIDT.toString());
+                    if (retval == null){
+                        throw new Exception("The item $" + leftIDT.toString() + " does not exist in this enviornment.");
+                    }
+                    return retval;
+                }
+                else if (operation.getOperation() == OperationNode.Operation.NOT){
+                    // If the operation returns true return a false IDT, otherwize return true.
+                    return leftIDT.toBoolean() ? toIDT("0") : toIDT("1");
+                }
+                else if (operation.getOperation() == OperationNode.Operation.POSTDEC){
+                    if (operation.getLeft() instanceof VariableReferenceNode){
+                        InterpreterDataType retval = toIDT(leftIDT.toFloat());
+                        VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
+
+                        if (localVar.containsKey(var.getName()))
+                            localVar.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
+                        else if (globalVars.containsKey(var.getName()))
+                            globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
+                        else
+                            throw new Exception("The variable " + var.getName() + " has not been initialized");
+
+                        return retval;
+                        }
+                    else
+                        throw new Exception("The post-dec operator can only be used on a variable");
+                }
+                else if (operation.getOperation() == OperationNode.Operation.POSTINC){
+                    if (operation.getLeft() instanceof VariableReferenceNode){
+                        InterpreterDataType retval = toIDT(leftIDT.toFloat());
+                        VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
+
+                        if (localVar.containsKey(var.getName()))
+                            localVar.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
+                        else if (globalVars.containsKey(var.getName()))
+                            globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
+                        else
+                            throw new Exception("The variable " + var.getName() + " has not been initialized");
+
+                        return retval;
+                    }
+                    else
+                        throw new Exception("The post-inc operator can only be used on a variable");
+                }
+                else if (operation.getOperation() == OperationNode.Operation.PREDEC){
+                    if (operation.getLeft() instanceof VariableReferenceNode){
+                        InterpreterDataType retval = toIDT(leftIDT.toFloat() - 1);
+                        VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
+
+                        if (localVar.containsKey(var.getName()))
+                            localVar.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
+                        else if (globalVars.containsKey(var.getName()))
+                            globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() - 1));
+                        else
+                            throw new Exception("The variable " + var.getName() + " has not been initialized");
+
+                        return retval;
+                    }
+                    else
+                        throw new Exception("The pre-dec operator can only be used on a variable");
+                }
+                else if (operation.getOperation() == OperationNode.Operation.PREINC){
+                    if (operation.getLeft() instanceof VariableReferenceNode){
+                        InterpreterDataType retval = toIDT(leftIDT.toFloat() + 1);
+                        VariableReferenceNode var = (VariableReferenceNode) operation.getLeft();
+
+                        if (localVar.containsKey(var.getName()))
+                            localVar.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
+                        else if (globalVars.containsKey(var.getName()))
+                            globalVars.replace(var.getName(), toIDT(leftIDT.toFloat() + 1));
+                        else
+                            throw new Exception("The variable " + var.getName() + " has not been initialized");
+                        
+                        return retval;
+                    }
+                    else
+                        throw new Exception("The pre-inc operator can only be used on a variable");
+                }
+                else if (operation.getOperation() == OperationNode.Operation.UNARYNEG){
+                    return toIDT(leftIDT.toFloat() < 0 ? leftIDT.toFloat() : -leftIDT.toFloat());
+                }
+                else if (operation.getOperation() == OperationNode.Operation.UNARYPOS){
+                    return toIDT(leftIDT.toFloat() < 0 ? -leftIDT.toFloat() : leftIDT.toFloat());
+                }                        
+                else
+                    throw new Exception("Unexpected " + operation.getOperation() + "found");
+            }
+        }
+        else {
+            throw new Exception("Unrecognized node passed to getIDT.");
+        }
+    }
+
+    private String runFunctionCall(FunctionCallNode fcn, HashMap<String, InterpreterDataType> localVars)throws Exception{
+        
+        FunctionDefinitionNode func;
+
+        if(functions.containsKey(fcn.getName()))
+            func = functions.get(fcn.getName());
+        else 
+            throw new Exception("The function \"" + fcn.getName() + "\" has not been defined.");
+        
+
+        if(!func.isVariadic() && fcn.getParameters().size() != func.getParameters().size())
+            throw new Exception("Not enough parameters supplied to the function \"" + fcn.getName() + "\"");
+
+        HashMap<String, InterpreterDataType> map = new HashMap<>();
+
+        for(int i =0; i<func.getParameters().size(); i++)
+            map.put(func.getParameters().get(i), getIDT(fcn.getParameters().get(i), localVars));
+
+        if (func instanceof BuiltInFunctionDefinitionNode)
+            ((BuiltInFunctionDefinitionNode)func).execute(map);
+        else 
+            processStatementList(func.getStatements(), map);
+
+        return "";
     }
 
     public class LineManager{
@@ -859,11 +896,11 @@ public class Interpreter {
         return getIDT(n, localVar);
     }
 
-    public String TEST_runFunctionCall(FunctionCallNode fcn, HashMap<String, InterpreterDataType> localVars){
+    public String TEST_runFunctionCall(FunctionCallNode fcn, HashMap<String, InterpreterDataType> localVars) throws Exception{
         return runFunctionCall(fcn, localVars);
     }
 
-    public ReturnType TEST_interpreteStatementList(LinkedList<StatementNode> statements, HashMap<String, InterpreterDataType> localVars){
+    public ReturnType TEST_interpreteStatementList(LinkedList<StatementNode> statements, HashMap<String, InterpreterDataType> localVars) throws Exception{
         return processStatementList(statements, localVars);
     }
 }
