@@ -34,7 +34,7 @@ public class InterpreterArrayDataType extends InterpreterDataType{
     }
 
     public void add(InterpreterDataType value){
-        values.put(Integer.toString(values.size() + 1), value);
+        values.put(Integer.toString(values.size()), value);
     }
 
     public boolean contains(String key){

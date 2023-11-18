@@ -403,7 +403,7 @@ public class UnitTests {
                 "}\n" + //
                 "");
         Parser test = new Parser(lexy.lex());
-        Assert.assertEquals("BEGIN { print \"Hello, world!\"\nexit}", test.parse().toString());
+        Assert.assertEquals("BEGIN { print(\"Hello, world!\",)\nexit()\n}\n", test.parse().toString());
 
         String programFileName = "testAWK1.awk";
 
@@ -416,7 +416,7 @@ public class UnitTests {
         Parser parser = new Parser(list);
         ProgramNode program = parser.parse();
 
-        Assert.assertEquals("BEGIN{print \"Hello, world!\"}", program.toString());
+        Assert.assertEquals("BEGIN { print(\"Hello, world!\n\",)\n}\n", program.toString());
     }
 
     @Test
@@ -495,10 +495,10 @@ public class UnitTests {
 
     @Test
     public void PAR_parseFunctionCall() throws Exception{
-        Lexer lex = new Lexer("BEGIN {\n\tprint \"Hello, world!\"\n}\n");
+        Lexer lex = new Lexer("BEGIN {\n\tprint \"Hello, world!\"\nexit}\n");
         Parser test = new Parser(lex.lex());
 
-        Assert.assertEquals("BEGIN {print(\"Hello, world!,\")\n exit()}", test.parse().toString());
+        Assert.assertEquals("BEGIN { print(\"Hello, world!\",)\nexit()\n}\n", test.parse().toString());
     }
 
     @Test
@@ -570,19 +570,36 @@ public class UnitTests {
     
     @Test
     public void LM() throws Exception{
-        /*String[] testArray = {"1 Dave 78","2 Greta 19023","3 Tod 789","4 Jerry 4","5 Windson 10398264",
-                        "6 Mono 293874","7 Kurby 6","8 Sprimkles 4567","9 Skelington 0","10 Doomslug 765435432"};
-        LinkedList<String> test = new LinkedList<String>();
-        for(String s: testArray)
-            test.add(s);
-        Interpreter.LineManager lm = new LineManager(test);*/
+        String inputFileName = "test3.txt";
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
-        Interpreter inter = new Interpreter(parse.parse(), "/home/danny/GitShit/ICSI311/test3.txt");
+        Interpreter inter = new Interpreter(parse.parse(), "test3.txt");
 
         for(int i = 0; i<10; i++)
             Assert.assertTrue(inter.getLineManager().splitAndAssign());
         Assert.assertFalse(inter.getLineManager().splitAndAssign());
+
+        // Make a new Interpreter to make a new line manager for further testing.
+        inter = new Interpreter(parse.parse(), "test3.txt");
+        HashMap<String, InterpreterDataType> map = inter.TEST_getGlobals();
+
+        inter.getLineManager().splitAndAssign();
+        Assert.assertEquals(map.get("$0").getValue(), "1 Dave 78");
+        Assert.assertEquals(map.get("$1").getValue(), "1");
+        Assert.assertEquals(map.get("$2").getValue(), "Dave");
+        Assert.assertEquals(map.get("$3").getValue(), "78");
+
+        inter.getLineManager().splitAndAssign();
+        Assert.assertEquals(map.get("$0").getValue(), "2 Greta 19023");
+        Assert.assertEquals(map.get("$1").getValue(), "2");
+        Assert.assertEquals(map.get("$2").getValue(), "Greta");
+        Assert.assertEquals(map.get("$3").getValue(), "19023");
+
+        inter.getLineManager().splitAndAssign();
+        Assert.assertEquals(map.get("$0").getValue(), "3 Tod 789");
+        Assert.assertEquals(map.get("$1").getValue(), "3");
+        Assert.assertEquals(map.get("$2").getValue(), "Tod");
+        Assert.assertEquals(map.get("$3").getValue(), "789");
     }
 
     @Test
@@ -654,13 +671,13 @@ public class UnitTests {
         BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("gsub");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
-        inter.getGlobals().put("test", toIDT("@ replace this please ->>@<<- pleeeeeease"));
+        inter.TEST_getGlobals().put("test", toIDT("@ replace this please ->>@<<- pleeeeeease"));
         testmap.put("target", toIDT("test"));
         testmap.put("regexp", toIDT("(@)"));
         testmap.put("replacement", toIDT("\\$"));
 
         Assert.assertEquals("1", test.execute(testmap));
-        Assert.assertEquals("$ replace this please ->>$<<- pleeeeeease", inter.getGlobals().get("test").getValue());
+        Assert.assertEquals("$ replace this please ->>$<<- pleeeeeease", inter.TEST_getGlobals().get("test").getValue());
     }
 
     @Test
@@ -685,13 +702,13 @@ public class UnitTests {
         BuiltInFunctionDefinitionNode test = (BuiltInFunctionDefinitionNode) inter.getFunctions().get("sub");
 
         HashMap<String, InterpreterDataType> testmap = new HashMap<>();
-        inter.getGlobals().put("test", toIDT("water, water, everywhere"));
+        inter.TEST_getGlobals().put("test", toIDT("water, water, everywhere"));
         testmap.put("regexp", toIDT("at"));
         testmap.put("replacement", toIDT("ith"));
         testmap.put("target", toIDT("test"));
 
         Assert.assertEquals("1", test.execute(testmap));
-        Assert.assertEquals("wither, water, everywhere", inter.getGlobals().get("test").getValue());
+        Assert.assertEquals("wither, water, everywhere", inter.TEST_getGlobals().get("test").getValue());
     }
 
     @Test
@@ -1014,8 +1031,74 @@ public class UnitTests {
         Assert.assertEquals(ReturnType.Result.RETURN, retty.getResult());
     }
 
+    @Test
+    public void FINAL_HelloWorld() throws Exception{
+        // Select files
+        String programFileName = "testAWK1.awk";
+        String inputFileName = "";
+        
+        // Open file and pass to the lexer.
+        Path myPath = Paths.get(programFileName);
+        String file = new String(Files.readAllBytes(myPath));
+        Lexer lex = new Lexer(file);
 
+        // Lex.
+        LinkedList<Token> list = lex.lex();
 
+        //* Parse
+        Parser parser = new Parser(list);
+        ProgramNode program = parser.parse();
+
+        //Interpret
+        Interpreter interpreter = new Interpreter(program, inputFileName);
+        interpreter.interpretProgram();
+    }
+
+    @Test
+    public void FINAL_MathCheck() throws Exception{
+        // Select files
+        String programFileName = "testAWK2.awk";
+        String inputFileName = "";
+        
+        // Open file and pass to the lexer.
+        Path myPath = Paths.get(programFileName);
+        String file = new String(Files.readAllBytes(myPath));
+        Lexer lex = new Lexer(file);
+
+        // Lex.
+        LinkedList<Token> list = lex.lex();
+
+        //* Parse
+        Parser parser = new Parser(list);
+        ProgramNode program = parser.parse();
+
+        //Interpret
+        Interpreter interpreter = new Interpreter(program, inputFileName);
+        interpreter.interpretProgram();
+    }
+
+    @Test
+    public void FINAL_FileCheck() throws Exception{
+        // Select files
+        String programFileName = "testAWK3.awk";
+        String inputFileName = "test3.txt";
+        
+        // Open file and pass to the lexer.
+        Path myPath = Paths.get(programFileName);
+        String file = new String(Files.readAllBytes(myPath));
+        Lexer lex = new Lexer(file);
+
+        // Lex.
+        LinkedList<Token> list = lex.lex();
+
+        //* Parse
+        Parser parser = new Parser(list);
+        ProgramNode program = parser.parse();
+
+        //Interpret
+        Interpreter interpreter = new Interpreter(program, inputFileName);
+        interpreter.interpretProgram();
+    }
 
     // Quality of life functions:
     private InterpreterDataType toIDT(String value){

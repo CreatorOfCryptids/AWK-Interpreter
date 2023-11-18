@@ -5,6 +5,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Scanner;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -30,22 +32,26 @@ public class Interpreter {
         globalVars.put("FNR", toIDT(0));
         globalVars.put("NR", toIDT(0));
         
-        try{
-            /*
-            Path myPath = Paths.get(fileName);
-            String file = new String(Files.readAllBytes(myPath));
-             */
-            Path myPath = Paths.get(filePath);
-            String file = new String(Files.readAllBytes(myPath));
-            LinkedList<String> lines = new LinkedList<String>();
-            for(String s : file.split("\n"))
-                lines.add(s);
-            
-            lm = new LineManager(lines);
+        if(!filePath.equals("")){
+            try{
+                Path myPath = Paths.get(filePath);
+                String file = new String(Files.readAllBytes(myPath));
+
+                LinkedList<String> lines = new LinkedList<String>();
+
+                for(String s : file.split("\n"))
+                    lines.add(s);
+                
+                lm = new LineManager(lines);
+            }
+            catch(IOException e){
+                lm = new LineManager();
+            }
         }
-        catch(IOException e){
-            lm = new LineManager(new LinkedList<String>());
+        else{
+            lm = new LineManager();
         }
+        
         functions = new HashMap<String, FunctionDefinitionNode>();
         LinkedList<FunctionDefinitionNode> functionList = prog.getFunctionNodes();
         for(FunctionDefinitionNode n : functionList)
@@ -74,7 +80,8 @@ public class Interpreter {
                 array[i] = IADTarray.getValue(toString(i)).getValue();
 
             // Print them.
-            System.out.print(array); 
+            for(String s : array)
+                System.out.print(s); 
             return "";
         };
         args = new String[]{"array"};
@@ -268,10 +275,12 @@ public class Interpreter {
             interpretBlock((BlockNode) b);
 
         blocks = prog.getOtherNodes();
-        for(Node b : blocks){
-            lm.splitAndAssign();
-            interpretBlock((BlockNode) b);
+        while (lm.splitAndAssign()){
+            for(Node b : blocks){
+                interpretBlock((BlockNode) b);
+            }
         }
+        
 
         blocks = prog.getEndNodes();
         for(Node b : blocks)
@@ -420,7 +429,6 @@ public class Interpreter {
     }
 
     private InterpreterDataType getIDT(Node n, HashMap<String, InterpreterDataType> localVar) throws Exception{
-        //
         if(n instanceof AssignmentNode){
             AssignmentNode assignment = ((AssignmentNode)n);
             Node left = assignment.getLeft();
@@ -652,9 +660,9 @@ public class Interpreter {
             }
             else {
                 if (operation.getOperation() == OperationNode.Operation.DOLLAR){
-                    InterpreterDataType retval = globalVars.get(leftIDT.toString());
+                    InterpreterDataType retval = globalVars.get("$" + leftIDT.getValue());
                     if (retval == null){
-                        throw new Exception("The item $" + leftIDT.toString() + " does not exist in this enviornment.");
+                        throw new Exception("The item $" + leftIDT.getValue() + " does not exist in this enviornment in line " + lm.getLineNumber());
                     }
                     return retval;
                 }
@@ -753,15 +761,32 @@ public class Interpreter {
             func = functions.get(fcn.getName());
         else 
             throw new Exception("The function \"" + fcn.getName() + "\" has not been defined.");
-        
-
-        if(!func.isVariadic() && fcn.getParameters().size() != func.getParameters().size())
-            throw new Exception("Not enough parameters supplied to the function \"" + fcn.getName() + "\"");
 
         HashMap<String, InterpreterDataType> map = new HashMap<>();
 
-        for(int i =0; i<func.getParameters().size(); i++)
-            map.put(func.getParameters().get(i), getIDT(fcn.getParameters().get(i), localVars));
+        //TODO: put things into array.
+        if (func.isVariadic()){
+            for(int i =0; i<fcn.getParameters().size(); i++){
+                if (func.getParameters().get(i).equals("array")){
+                    // Put everything else into the array
+                    InterpreterArrayDataType array = new InterpreterArrayDataType();
+
+                    for(; i<fcn.getParameters().size(); i++){
+                        array.add(getIDT(fcn.getParameters().get(i), localVars));
+                    }
+                    map.put("array", array);
+                }
+                else {
+                    map.put(func.getParameters().get(i), getIDT(fcn.getParameters().get(i), localVars));
+                }
+            }
+        }
+        else if (fcn.getParameters().size() == func.getParameters().size()){
+            for(int i =0; i<func.getParameters().size(); i++)
+                map.put(func.getParameters().get(i), getIDT(fcn.getParameters().get(i), localVars));
+        }
+        else
+            throw new Exception("Not enough parameters supplied to the function \"" + fcn.getName() + "\"");
 
         if (func instanceof BuiltInFunctionDefinitionNode)
             ((BuiltInFunctionDefinitionNode)func).execute(map);
@@ -772,42 +797,91 @@ public class Interpreter {
     }
 
     public class LineManager{
-        List<String> file;
+        Optional<List<String>> fileMaybe;
+        Optional<Scanner> scanner;
         int lineNum;
 
         LineManager(List<String> file){
-            this.file = file;
+            this.fileMaybe = Optional.of(file);
+            scanner = Optional.empty();
             lineNum = 0;
         }
 
-        boolean splitAndAssign(){
-            // Make sure the line is valid 
-            if (lineNum >= file.size())
-                return false;
-            
-            globalVars.replace("$0", toIDT(file.get(lineNum)));
-
-            String[] currentLine = file.get(lineNum).split(globalVars.get("FS").getValue());
-            lineNum++;
-            
-            // Remove old values.
-            for(int i = 1; i<=Integer.parseInt(globalVars.get("NF").getValue()); i++)
-                globalVars.remove("$" + i);
-
-            // Update NR and FNR
-            int FNR = Integer.parseInt(globalVars.get("FNR").getValue());
-            globalVars.replace("FNR", toIDT(FNR++));
-            int NR = Integer.parseInt(globalVars.get("NR").getValue());
-            globalVars.replace("NR", toIDT(NR++));
-
-            // Set the $i variables.
-            for(int i = 0; i<currentLine.length; i++)
-                globalVars.replace("$" + i+1, toIDT(currentLine[i]));
-
-            // Update NF
-            globalVars.replace("NF", toIDT(Integer.toString(currentLine.length)));
-            return true;
+        LineManager(){
+            lineNum = 0;
+            fileMaybe = Optional.empty();
+            scanner = Optional.of(new Scanner(System.in));
         }
+
+        boolean splitAndAssign(){
+            if (fileMaybe.isPresent()){
+                List<String> file = fileMaybe.get();
+                // Make sure the line is valid 
+                if (lineNum >= file.size())
+                    return false;
+                
+                if(lineNum == 0)
+                    globalVars.put("$0", toIDT(file.get(lineNum)));
+                else
+                    globalVars.replace("$0", toIDT(file.get(lineNum)));
+
+                String[] currentLine = file.get(lineNum).split(globalVars.get("FS").getValue());
+                lineNum++;
+                
+                // Remove old values.
+                for(int i = 1; i<=Integer.parseInt(globalVars.get("NF").getValue()); i++)
+                    globalVars.remove("$" + i);
+
+                // Update NR and FNR
+                int FNR = Integer.parseInt(globalVars.get("FNR").getValue());
+                globalVars.replace("FNR", toIDT(FNR++));
+                int NR = Integer.parseInt(globalVars.get("NR").getValue());
+                globalVars.replace("NR", toIDT(NR++));
+
+                // Set the $i variables.
+                for(int i = 0; i<currentLine.length; i++)
+                    globalVars.put("$" + Integer.toString(i+1), toIDT(currentLine[i]));
+
+                // Update NF
+                globalVars.replace("NF", toIDT(Integer.toString(currentLine.length)));
+                return true;
+            }
+            else{// Decided to add inline functionality.
+                Scanner scnr = scanner.get();
+                String nextLine = scnr.nextLine();
+
+                if(lineNum == 0)
+                    globalVars.put("$0", toIDT(nextLine));
+                else
+                    globalVars.replace("$0", toIDT(nextLine));
+
+                String[] currentLine = nextLine.split(globalVars.get("FS").getValue());
+                lineNum++;
+                
+                // Remove old values.
+                for(int i = 1; i<=Integer.parseInt(globalVars.get("NF").getValue()); i++)
+                    globalVars.remove("$" + i);
+
+                // Update NR and FNR
+                int FNR = Integer.parseInt(globalVars.get("FNR").getValue());
+                globalVars.replace("FNR", toIDT(FNR++));
+                int NR = Integer.parseInt(globalVars.get("NR").getValue());
+                globalVars.replace("NR", toIDT(NR++));
+
+                // Set the $i variables.
+                for(int i = 0; i<currentLine.length; i++)
+                    globalVars.put("$" + Integer.toString(i+1), toIDT(currentLine[i]));
+
+                // Update NF
+                globalVars.replace("NF", toIDT(Integer.toString(currentLine.length)));
+                return true;
+            }
+        }
+        
+        public int getLineNumber(){
+                return lineNum;
+        }
+            
     }
 
     
@@ -880,7 +954,7 @@ public class Interpreter {
         return lm;
     }
 
-    public HashMap<String, InterpreterDataType> getGlobals(){
+    public HashMap<String, InterpreterDataType> TEST_getGlobals(){
         return globalVars;
     }
 

@@ -5,3 +5,4 @@
 !.gitignore
 Printer.java
 *.class
+!testAWK[0-9].awk

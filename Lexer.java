@@ -168,16 +168,26 @@ public class Lexer {
 
         // Loop until the end of the file or the next '"'
         while (!h.isDone() && (c != '\"')){
-            stringLiteral += h.getChar();
-            c = h.peek();
-            position++;
-            // If we encounter an excape thing, skip that and pretend it's not there.
             if (c == '\\' && !h.isDone()){
                 h.swallow(1);
-                stringLiteral += h.getChar();
+                if(h.peek() == 'n'){
+                    h.getChar();
+                    stringLiteral += '\n';
+                }
+                else{
+                    stringLiteral += h.getChar();
+                }
                 position+=2;
                 c = h.peek();
             }
+            else{
+                stringLiteral += h.getChar();
+                c = h.peek();
+                position++;
+            }
+            
+            // If we encounter an excape thing, skip that and pretend it's not there.
+            
             // If we reach the end of the line or the end of the file without a closing '"' we throw an exception
             if (/**!h.isDone() ||/**/ c == '\n'){
                 throw new Exception("Expected a '\"' on line " + lineNumber);
@@ -244,7 +254,7 @@ public class Lexer {
         keyWords.put("in", Token.Type.IN);
         keyWords.put("delete", Token.Type.DELETE);
         keyWords.put("getline", Token.Type.GETLINE);
-        keyWords.put("EXIT", Token.Type.EXIT);
+        keyWords.put("exit", Token.Type.EXIT);
         keyWords.put("nextfile", Token.Type.NEXTFILE);
         keyWords.put("function", Token.Type.FUNCTION);
 
