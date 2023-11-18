@@ -18,6 +18,10 @@ public class FunctionCallNode extends StatementNode{
         return parameters;
     }
 
+    public boolean isVariadic(){
+        return false;
+    }
+
     public String toString(){
         String retval = functionName;
         retval += "(";

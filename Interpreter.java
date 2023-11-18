@@ -392,11 +392,11 @@ public class Interpreter {
             IfNode ifNode = (IfNode) statement;
 
             // Loop thru each if statement until we find one that evaluates to true
-            while (ifNode.getCondition().isPresent() && !getIDT(ifNode.getCondition().get(), localVars).toBoolean()){
+            while (ifNode.getCondition().isPresent() && getIDT(ifNode.getCondition().get(), localVars).toBoolean() == false){
                 if(ifNode.getNext().isPresent())
                     ifNode = ifNode.getNext().get();
                 else 
-                    return new ReturnType(ReturnType.Result.CONTINUE); 
+                    return new ReturnType(ReturnType.Result.NORMAL); 
             }
 
             return processStatementList(ifNode.getStatements(), localVars);

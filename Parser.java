@@ -125,7 +125,7 @@ public class Parser {
      */
     private LinkedList<StatementNode> parseStatements() throws Exception{
         LinkedList<StatementNode> statementList = new LinkedList<StatementNode>();
-        // Loop until there's a '}'
+        // Loop until there's a '{'
         if (h.matchAndRemove(Token.Type.LCURLY).isPresent())
             while (h.matchAndRemove(Token.Type.RCURLY).isEmpty()) {
                 // Make sure there's still more tokens
@@ -191,10 +191,11 @@ public class Parser {
      * @return an IfNode containing a parsed if statement.
      */
     private Optional<IfNode> parseIf()throws Exception{
-        
+        // Take in LPAREN
         if (h.matchAndRemove(Token.Type.LPAREN).isEmpty())
             throw new Exception("Expected a '(' after " +  h.getErrorPosition());
 
+        // Take in Boolean Value.
         Optional<Node> optNode = parseOperation(); 
         if (optNode.isEmpty())
             throw new Exception("Expected an operation at or before " + h.getErrorPosition());
@@ -203,6 +204,7 @@ public class Parser {
         // Make sure there's a closing parenthesis when expected.
         if (h.matchAndRemove(Token.Type.RPAREN).isEmpty())
             throw new Exception("Expected a ')' after " + h.getErrorPosition());
+        
         // Swallow any newlines.
             acceptSeperators();
         
@@ -210,14 +212,18 @@ public class Parser {
 
         // Initialize the IfNode pointer outside so we can decide whether to add else statements.
         IfNode returnIfNode;
-        // Check for elseif and else statements
-        if (h.matchAndRemove(Token.Type.ELSE).isPresent())
+
+        // Check for else-if and else statements
+        if (h.matchAndRemove(Token.Type.ELSE).isPresent()){
+
             // If there is an if statement after the else, then pass the recursivly called parseIf() to the else if constructor.
             if (h.matchAndRemove(Token.Type.IF).isPresent())
                 returnIfNode = new IfNode(condition, statements, parseIf().get());
+
             // If there is not an if, then just take it as a list of statements and pass that to the else constructor
             else
-                returnIfNode = new IfNode(parseStatements());
+                returnIfNode = new IfNode(condition, statements, new IfNode(parseStatements()));
+        }  
         else
             returnIfNode = new IfNode(condition, statements);
         

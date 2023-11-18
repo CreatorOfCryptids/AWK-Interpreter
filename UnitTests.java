@@ -421,17 +421,11 @@ public class UnitTests {
 
     @Test
     public void PAR_parseIf() throws Exception{
-        Lexer lex = new Lexer("BEGIN{if(1+1==2){doThings()}else if(44>3) doOtherThings() else{doThing(); if(0) doThingz()}}");
+        String input = "BEGIN{if(1+1==2){doThings()}else if(44>3) doOtherThings() else{doThing(); if(0) doThingz()}}";
+        String output = "BEGIN { if (((\"1\"+\"1\")==\"2\")){\ndoThings();\n}else if ((\"44\">\"3\")){\ndoOtherThings();\n}else {\ndoThing();\nif (\"0\"){\ndoThingz();\n};\n}\n}\n";
+        Lexer lex = new Lexer(input);
         Parser test = new Parser(lex.lex());
-        Assert.assertEquals("BEGIN { if (((\"1\"+\"1\")==\"2\")){\n" + //
-                "doThings();\n" + //
-                "}else {\n" + //
-                "doThing();\n" + //
-                "if (\"0\"){\n" + //
-                "doThingz();\n" + //
-                "};\n" + //
-                "}\n" + //
-                "}\n", test.parse().toString());
+        Assert.assertEquals(output, test.parse().toString());
     }
 
     @Test
@@ -1078,10 +1072,79 @@ public class UnitTests {
     }
 
     @Test
-    public void FINAL_FileCheck() throws Exception{
+    public void FINAL_InputCheck() throws Exception{
         // Select files
         String programFileName = "testAWK3.awk";
         String inputFileName = "test3.txt";
+        
+        // Open file and pass to the lexer.
+        Path myPath = Paths.get(programFileName);
+        String file = new String(Files.readAllBytes(myPath));
+        Lexer lex = new Lexer(file);
+
+        // Lex.
+        LinkedList<Token> list = lex.lex();
+
+        //* Parse
+        Parser parser = new Parser(list);
+        ProgramNode program = parser.parse();
+
+        //Interpret
+        Interpreter interpreter = new Interpreter(program, inputFileName);
+        interpreter.interpretProgram();
+    }
+
+    @Test
+    public void FINAL_ConditionalCheck() throws Exception{
+        // Select files
+        String programFileName = "testAWK4.awk";
+        String inputFileName = "";
+        
+        // Open file and pass to the lexer.
+        Path myPath = Paths.get(programFileName);
+        String file = new String(Files.readAllBytes(myPath));
+        Lexer lex = new Lexer(file);
+
+        // Lex.
+        LinkedList<Token> list = lex.lex();
+
+        //* Parse
+        Parser parser = new Parser(list);
+        ProgramNode program = parser.parse();
+
+        //Interpret
+        Interpreter interpreter = new Interpreter(program, inputFileName);
+        interpreter.interpretProgram();
+    }
+
+    @Test
+    public void FINAL_FunctionsCheck() throws Exception{
+        // Select files
+        String programFileName = "testAWK5.awk";
+        String inputFileName = "";
+        
+        // Open file and pass to the lexer.
+        Path myPath = Paths.get(programFileName);
+        String file = new String(Files.readAllBytes(myPath));
+        Lexer lex = new Lexer(file);
+
+        // Lex.
+        LinkedList<Token> list = lex.lex();
+
+        //* Parse
+        Parser parser = new Parser(list);
+        ProgramNode program = parser.parse();
+
+        //Interpret
+        Interpreter interpreter = new Interpreter(program, inputFileName);
+        interpreter.interpretProgram();
+    }
+
+    @Test
+    public void FINAL_LoopsBrother() throws Exception {
+        // Select files
+        String programFileName = "testAWK6.awk";
+        String inputFileName = "";
         
         // Open file and pass to the lexer.
         Path myPath = Paths.get(programFileName);
