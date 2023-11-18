@@ -32,24 +32,19 @@ public class Interpreter {
         globalVars.put("FNR", toIDT(0));
         globalVars.put("NR", toIDT(0));
         
-        if(!filePath.equals("")){
-            try{
-                Path myPath = Paths.get(filePath);
-                String file = new String(Files.readAllBytes(myPath));
+        try{
+            Path myPath = Paths.get(filePath);
+            String file = new String(Files.readAllBytes(myPath));
 
                 LinkedList<String> lines = new LinkedList<String>();
 
-                for(String s : file.split("\n"))
-                    lines.add(s);
-                
-                lm = new LineManager(lines);
-            }
-            catch(IOException e){
-                lm = new LineManager();
-            }
+            for(String s : file.split("\n"))
+                lines.add(s);
+            
+            lm = new LineManager(lines);
         }
-        else{
-            lm = new LineManager();
+        catch(IOException e){
+            lm = new LineManager(/**/new LinkedList<String>()/**/);
         }
         
         functions = new HashMap<String, FunctionDefinitionNode>();
@@ -797,25 +792,33 @@ public class Interpreter {
     }
 
     public class LineManager{
-        Optional<List<String>> fileMaybe;
+        Optional<List<String>> fileInput;
         Optional<Scanner> scanner;
         int lineNum;
 
+        /**
+         * The standard constructor.
+         * @param file The file to be read by the program.
+         */
         LineManager(List<String> file){
-            this.fileMaybe = Optional.of(file);
+            this.fileInput = Optional.of(file);
             scanner = Optional.empty();
             lineNum = 0;
         }
 
+        /**
+         * The InLine constructor.
+         * This constructor opens a scanner so that the interpreter can read in lines from the terminal.
+         */
         LineManager(){
             lineNum = 0;
-            fileMaybe = Optional.empty();
+            fileInput = Optional.empty();
             scanner = Optional.of(new Scanner(System.in));
         }
 
         boolean splitAndAssign(){
-            if (fileMaybe.isPresent()){
-                List<String> file = fileMaybe.get();
+            if (fileInput.isPresent()){
+                List<String> file = fileInput.get();
                 // Make sure the line is valid 
                 if (lineNum >= file.size())
                     return false;
@@ -877,11 +880,10 @@ public class Interpreter {
                 return true;
             }
         }
-        
+
         public int getLineNumber(){
-                return lineNum;
-        }
-            
+            return lineNum;
+        }       
     }
 
     
@@ -909,45 +911,9 @@ public class Interpreter {
         return new BuiltInFunctionDefinitionNode(name, foo, variadic, argsList);
     }
 
-    /*private int IDTtoInt(InterpreterDataType idt) throws Exception{
-        try{
-            int retval = Integer.parseInt(idt.getValue());
-            return retval;
-        }  
-        catch(NumberFormatException e){
-            throw new Exception("Expected an Integer, but was actually: " + idt.getValue());
-        }
-    }*/
-
     private String toString(int value){
         return Integer.toString(value);
     }
-
-    /*private static String toString(float value){
-        return Float.toString(value);
-    }*/
-
-    /*private float toFloat(InterpreterDataType idt)throws Exception{
-        try{
-            return Float.parseFloat(idt.getValue());
-        }
-        catch (NumberFormatException e){
-            throw new Exception("Expected a parseable float instead of \"" + idt.getValue() + "\"");
-        }
-
-    }*/
-
-    /*private boolean toBoolean(String value){
-        try{
-            float fakeBoolean = Float.parseFloat(value);
-            if(fakeBoolean == 0)
-                return false;
-            else return true;
-        }
-        catch(NumberFormatException e){
-            return false;
-        }
-    }*/
 
     // TODO: Delete after testing.
     public LineManager getLineManager(){

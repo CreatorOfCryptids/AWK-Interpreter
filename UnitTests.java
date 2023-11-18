@@ -573,7 +573,7 @@ public class UnitTests {
         String inputFileName = "test3.txt";
         Lexer lex = new Lexer("{print $2  \" \"$2}");
         Parser parse = new Parser(lex.lex());
-        Interpreter inter = new Interpreter(parse.parse(), "test3.txt");
+        Interpreter inter = new Interpreter(parse.parse(), inputFileName);
 
         for(int i = 0; i<10; i++)
             Assert.assertTrue(inter.getLineManager().splitAndAssign());
@@ -1035,7 +1035,7 @@ public class UnitTests {
     public void FINAL_HelloWorld() throws Exception{
         // Select files
         String programFileName = "testAWK1.awk";
-        String inputFileName = "";
+        String inputFileName = "test1.txt";
         
         // Open file and pass to the lexer.
         Path myPath = Paths.get(programFileName);
@@ -1058,7 +1058,7 @@ public class UnitTests {
     public void FINAL_MathCheck() throws Exception{
         // Select files
         String programFileName = "testAWK2.awk";
-        String inputFileName = "";
+        String inputFileName = "test2.txt";
         
         // Open file and pass to the lexer.
         Path myPath = Paths.get(programFileName);

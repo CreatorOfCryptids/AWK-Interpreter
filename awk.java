@@ -15,7 +15,12 @@ public class awk {
             programFileName = "testAWK1.awk";
 
         if(args.length > 1)
-            inputFileName = args[1];
+            if(args[1].equals("-IN")){
+                inputFileName = "\\INLINE\\";
+            }
+            else{
+                inputFileName = args[1];
+            }
         else
             inputFileName = "";
 
