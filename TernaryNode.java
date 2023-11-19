@@ -11,9 +11,9 @@ public class TernaryNode extends Node{
     }
 
     public String toString() {
-        String retval = "";
-        retval = boolExpression.toString() + " ? " + trueCase.toString() + " : " + falseCase.toString();
-        return retval;
+        String retval = "(";
+        retval += boolExpression.toString() + " ? " + trueCase.toString() + " : " + falseCase.toString();
+        return retval + ")";
     }
     
     public Node getExpression(){

@@ -740,12 +740,12 @@ public class Parser {
         }
         else if (h.matchAndRemove(Token.Type.PLUSPLUS).isPresent()){
             Node temp = parseBottomLevel().get();
-            retval = new OperationNode(temp, OperationNode.Operation.PREINC);
+            retval = new PrePostIterator(temp, OperationNode.Operation.PREINC);
             //retval = new AssignmentNode(temp, retval);
         }
         else if (h.matchAndRemove(Token.Type.MINUSMINUS).isPresent()){
             Node temp = parseBottomLevel().get();
-            retval = new OperationNode(temp, OperationNode.Operation.PREDEC);
+            retval = new PrePostIterator(temp, OperationNode.Operation.PREDEC);
             //retval = new AssignmentNode(temp, retval);
         }
         else if (isFunctionCall())
@@ -759,11 +759,11 @@ public class Parser {
         }
         //check for postinc and postdec, and put them into AssignmentNodes
         if (h.matchAndRemove(Token.Type.PLUSPLUS).isPresent()){
-            retval = new OperationNode(retval, OperationNode.Operation.POSTINC);
+            retval = new PrePostIterator(retval, OperationNode.Operation.POSTINC);
             //retval = new AssignmentNode(retval, temp);
         }
         else if (h.matchAndRemove(Token.Type.MINUSMINUS).isPresent()){
-            retval = new OperationNode(retval, OperationNode.Operation.POSTDEC);
+            retval = new PrePostIterator(retval, OperationNode.Operation.POSTDEC);
             //retval = new AssignmentNode(retval, temp);
         }
 
@@ -801,10 +801,10 @@ public class Parser {
         */
         if(h.moreTokens() == false) // Make sure that peeking won't return empty and cause an error.
             return false;
-        else if (h.peek().isPresent() && // Make sure that the next two tokens exist for peeking.
+        else if (h.peek(1).isPresent() && // Make sure that the next two tokens exist for peeking.
                 (h.peek().get().getType() == Token.Type.WORD && 
                 // Checking for the parentesis because if its a word by itself, then it shouldn't be parsed as a function.
-                h.peek().get().getType() == Token.Type.LPAREN))
+                h.peek(1).get().getType() == Token.Type.LPAREN))
             return true;
         // Check for built in functions.
         else if (h.peek().get().getType() == Token.Type.PRINT || h.peek().get().getType() == Token.Type.PRINTF ||

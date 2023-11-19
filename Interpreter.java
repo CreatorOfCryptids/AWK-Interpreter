@@ -501,7 +501,11 @@ public class Interpreter {
                 }
             }
         }
-        else if(n instanceof OperationNode){
+        else if(n instanceof OperationNode || n instanceof PrePostIterator){
+
+            if (n instanceof PrePostIterator){
+                n = ((PrePostIterator)n).getNode();
+            }
 
             OperationNode operation = (OperationNode) n;
             InterpreterDataType leftIDT;

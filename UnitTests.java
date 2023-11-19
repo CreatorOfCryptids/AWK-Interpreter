@@ -363,7 +363,7 @@ public class UnitTests {
                             "z = (a+b)-(c*d)/e + f^g^h"};
         String[] results = {"\"2\"","($\"2\")","(++preinc)","(--predec)","(!expr)","(+expr)","(-expr)","(a*b)","(a/b)","(a%b)",
                             "(a+b)","(a-b)","(a cat b)","(\"Hello, \" cat \"World!\")","(a<\"1\")","(a<=b)","(a==b)","(a!=b)",
-                            "(a>b)","(a>=b)","(a~b)","(a!~b)","a[\"2\"]","a[b]","(a&&b)","(a||b)","((a&&b)||c)","a ? b : c",
+                            "(a>b)","(a>=b)","(a~b)","(a!~b)","a[\"2\"]","a[b]","(a&&b)","(a||b)","((a&&b)||c)","(a ? b : c)",
                             "a=(a^b)","a=(a%b)","a=(a*b)","a=(a/b)","a=(a+b)","a=(a-b)","a=b","(a^b)","(a^(b^c))", "((a+b)+c)",
                             "z=(((a+b)-((c*d)/e))+(f^(g^h)))"};
         Lexer lex;
@@ -380,14 +380,14 @@ public class UnitTests {
 
     @Test
     public void PAR_parse2() throws Exception {
-        Lexer lex = new Lexer("BEGIN {a = \"Data:\"; count = 0;} $1 == \"b\" {count++; funcky($3)} function funky (b){b + $2 ? 2 :3;} END {printable = a + count}");
+        Lexer lex = new Lexer("BEGIN {a = \"Data:\"; count = 0;} $1 == \"b\" {count++; funcky($3)} function funky (b){ return b + ($2 ? 2 :3);} END {printable = a + count}");
         Parser test = new Parser(lex.lex());
-        Assert.assertEquals("function funky (b, ) { NULL STATEMENTS\n" + //
+        Assert.assertEquals("function funky (b, ) { return (b+(($\"2\") ? \"2\" : \"3\"));\n" + //
                 "}\n" + //
                 "BEGIN { a=\"Data:\"\n" + //
                 "count=\"0\"\n" + //
                 "}\n" + //
-                "(($\"1\")==\"b\"){ count=(count++)\n" + //
+                "(($\"1\")==\"b\"){ (count++)\n" + //
                 "funcky(($\"3\"),)\n" + //
                 "}\n" + //
                 "END { printable=(a+count)\n" + //
@@ -432,7 +432,7 @@ public class UnitTests {
     public void PAR_parseFor() throws Exception{
         Lexer lex = new Lexer("BEGIN{for(i=1; i<3; i++) print \"Thing \" i} END {for(thing in things){ print(thing)}}");
         Parser test = new Parser(lex.lex());
-        Assert.assertEquals("BEGIN { for(i=\"1\"; (i<\"3\"); i=(i++)){\n" + //
+        Assert.assertEquals("BEGIN { for(i=\"1\"; (i<\"3\"); (i++)){\n" + //
                 "print((\"Thing \" cat i),);\n" + //
                 "}\n" + //
                 "}\n" + //
@@ -477,7 +477,7 @@ public class UnitTests {
     public void PAR_parseBreakContinue() throws Exception{
         Lexer lex = new Lexer("for(i=1; i<3; i++){if(i==1) continue; else if(i==3) break;}");
         Parser test = new Parser(lex.lex());
-        Assert.assertEquals("{ for(i=\"1\"; (i<\"3\"); i=(i++)){\n" + //
+        Assert.assertEquals("{ for(i=\"1\"; (i<\"3\"); (i++)){\n" + //
                 "if ((i==\"1\")){\n" + //
                 "continue;;\n" + //
                 "}else if ((i==\"3\")){\n" + //
