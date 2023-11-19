@@ -265,7 +265,7 @@ public class Interpreter {
     public void interpretProgram() throws Exception{
         // BeginNodes
         LinkedList<Node> blocks = prog.getBeginNodes();
-        // TODO: Is this supposed to accept only BlockNodes, or only have BlockNodes in the first place?
+
         for(Node b : blocks)
             interpretBlock((BlockNode) b);
 
@@ -284,7 +284,6 @@ public class Interpreter {
 
     private void interpretBlock(BlockNode block) throws Exception{
         if(block.getCondition().isEmpty() || getIDT(block.getCondition().get(), globalVars).toBoolean()){
-            // TODO: This can't be right.
             processStatementList(block.getStatements(), new HashMap<String, InterpreterDataType>());
         }
     }
@@ -301,6 +300,7 @@ public class Interpreter {
     }
 
     private ReturnType processStatement(HashMap<String, InterpreterDataType> localVars, StatementNode statement) throws Exception{
+        // Check for each type of statement.
         if (statement instanceof BreakNode){
             return new ReturnType(ReturnType.Result.BREAK);
         }
@@ -351,7 +351,7 @@ public class Interpreter {
             
             while(getIDT(fNode.getCondition(), localVars).toBoolean()){
                 retval = processStatementList(fNode.getStatements(), localVars);
-                processStatement(localVars, (StatementNode) fNode.getIterator());   // Update the iterator.
+                getIDT(fNode.getIterator(), localVars);   // Update the iterator.
             }
 
             return retval;
@@ -383,10 +383,6 @@ public class Interpreter {
 
             return retval;
         }
-        /* else if (statement instanceof FunctionCallNode){
-        //     runFunctionCall(((FunctionCallNode) statement), localVars);
-        //     return new ReturnType(ReturnType.Result.CONTINUE);
-        // }*/
         else if (statement instanceof IfNode){
 
             IfNode ifNode = (IfNode) statement;
@@ -759,7 +755,7 @@ public class Interpreter {
 
         HashMap<String, InterpreterDataType> map = new HashMap<>();
 
-        //TODO: put things into array.
+        // Put things into the map in the right order.
         if (func.isVariadic()){
             for(int i =0; i<fcn.getParameters().size(); i++){
                 if (func.getParameters().get(i).equals("array")){
@@ -784,11 +780,9 @@ public class Interpreter {
             throw new Exception("Not enough parameters supplied to the function \"" + fcn.getName() + "\"");
 
         if (func instanceof BuiltInFunctionDefinitionNode)
-            ((BuiltInFunctionDefinitionNode)func).execute(map);
+            return ((BuiltInFunctionDefinitionNode)func).execute(map);
         else 
-            processStatementList(func.getStatements(), map);
-
-        return "";
+            return processStatementList(func.getStatements(), map).getValue().get();
     }
 
     public class LineManager{

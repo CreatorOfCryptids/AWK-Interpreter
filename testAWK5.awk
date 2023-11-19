@@ -8,5 +8,5 @@ function factorial (number){
 }
 
 BEGIN {
-    print factorial(5)
+    print factorial(5) "\n"
 }

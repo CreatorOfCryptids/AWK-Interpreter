@@ -353,7 +353,7 @@ public class UnitTests {
         Assert.assertEquals("e[++b]", parse.parseOperation().get().toString());
     }/**/
 
-    /* Test for the second part of parseOperation(). It is no longer public so this test doesn't work any more.
+    //* Test for the second part of parseOperation(). It is no longer public so this test doesn't work any more.
     @Test
     public void PAR_parseOperation2() throws Exception {
         String[] tests = {  "(2)",  "$2",      "++preinc",  "--predec",  "!expr",  "+expr",  "-expr",  "a * b","a/b",  "a%b",  
@@ -373,7 +373,7 @@ public class UnitTests {
         for (int i = 0; i<tests.length; i++){
             lex = new Lexer(tests[i]);
             par = new Parser(lex.lex());
-            test = par.parseOperation().get();
+            test = par.TEST_parseOperation().get();
             Assert.assertEquals(results[i], test.toString());
         }
     }/**/
@@ -1012,7 +1012,7 @@ public class UnitTests {
     }
 
     @Test
-    public void RT() throws Exception{
+    public void ReturnType() throws Exception{
         ReturnType retty = new ReturnType(ReturnType.Result.BREAK);
         Assert.assertEquals("BREAK", retty.toString());
         Assert.assertFalse(retty.hasValue());
@@ -1141,7 +1141,7 @@ public class UnitTests {
     }
 
     @Test
-    public void FINAL_LoopsBrother() throws Exception {
+    public void FINAL_LoopsBröther() throws Exception {
         // Select files
         String programFileName = "testAWK6.awk";
         String inputFileName = "";
