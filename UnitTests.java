@@ -345,12 +345,12 @@ public class UnitTests {
     public void PAR_parseOperation1() throws Exception {
         Lexer lex = new Lexer("++a ++$b (++d) -5 `[abc]` e[++b] $7");
         Parser parse = new Parser(lex.lex());
-        Assert.assertEquals("++a", parse.parseOperation().get().toString());
-        Assert.assertEquals("++$b", parse.parseOperation().get().toString());
-        Assert.assertEquals("++d", parse.parseOperation().get().toString());
-        Assert.assertEquals("-5", parse.parseOperation().get().toString());
-        Assert.assertEquals("`[abc]`", parse.parseOperation().get().toString());
-        Assert.assertEquals("e[++b]", parse.parseOperation().get().toString());
+        Assert.assertEquals("++a", parse.TEST_parseOperation().get().toString());
+        Assert.assertEquals("++$b", parse.TEST_parseOperation().get().toString());
+        Assert.assertEquals("++d", parse.TEST_parseOperation().get().toString());
+        Assert.assertEquals("-5", parse.TEST_parseOperation().get().toString());
+        Assert.assertEquals("`[abc]`", parse.TEST_parseOperation().get().toString());
+        Assert.assertEquals("e[++b]", parse.TEST_parseOperation().get().toString());
     }/**/
 
     //* Test for the second part of parseOperation(). It is no longer public so this test doesn't work any more.

@@ -27,17 +27,13 @@ public class awk {
         // Open file and pass to the lexer.
         Path myPath = Paths.get(programFileName);
         String file = new String(Files.readAllBytes(myPath));
+        
         Lexer lex = new Lexer(file);
 
-        // Lex.
-        LinkedList<Token> list = lex.lex();
+        Parser parser = new Parser(lex.lex());
+        
+        Interpreter interpreter = new Interpreter(parser.parse(), inputFileName);
 
-        //* Parse
-        Parser parser = new Parser(list);
-        ProgramNode program = parser.parse();
-
-        //Interpret
-        Interpreter interpreter = new Interpreter(program, inputFileName);
         interpreter.interpretProgram();
     }
 }
