@@ -496,9 +496,8 @@ public class Parser {
      */
     private Optional<Node> parseAssignment() throws Exception{
         // parseTernary will either return a Ternary node or a node from a lower level, so 
-        // TODO System.out.println(h.peek().get().toString());
-
         Optional<Node> left = parseTernary();
+        
         // Check if it follows the assignment pattern
         if (h.matchAndRemove(Token.Type.EXPONENTEQUALS).isPresent()){
             AssignmentNode retval = new AssignmentNode(left.get(), new OperationNode(left.get(), OperationNode.Operation.EXPONENT, parseMathExpression().get()));

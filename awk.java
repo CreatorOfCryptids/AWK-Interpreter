@@ -1,7 +1,6 @@
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedList;
 
 public class awk {
     public static void main(String[] args) throws Exception{
@@ -31,7 +30,7 @@ public class awk {
         Lexer lex = new Lexer(file);
 
         Parser parser = new Parser(lex.lex());
-        
+
         Interpreter interpreter = new Interpreter(parser.parse(), inputFileName);
 
         interpreter.interpretProgram();
