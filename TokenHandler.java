@@ -8,6 +8,7 @@ public class TokenHandler {
 
     /**
      * The TokenHandler() constructor.
+     * 
      * @param tokens A linked list of tokens.
      */
     TokenHandler(LinkedList<Token> tokens){
@@ -15,8 +16,9 @@ public class TokenHandler {
     }
 
     /**
-     * The peek() method.
-     * @param i 
+     * Returns the token i tokens ahead.
+     * 
+     * @param i How many tokens ahead to peek.
      * @return Optional with the i'th token in the list.
      */
     Optional<Token> peek(int i){
@@ -27,7 +29,8 @@ public class TokenHandler {
     }
 
     /**
-     * The peek() method.
+     * Returns the next token in the list.
+     * 
      * @return Optional with the top token in the list.
      */
     Optional<Token> peek(){
@@ -38,7 +41,8 @@ public class TokenHandler {
     }
 
     /**
-     * The moreTokens() method.
+     * Sees if there are more tokens in the list.
+     * 
      * @return True if the list has more tokens.
      *         False if the list does not have any more tokens.
      */
@@ -51,7 +55,8 @@ public class TokenHandler {
     }
 
     /**
-     * The matchAndRemove() method.
+     * Removes and returns the first item in the list if it has the same Token.Type as the provided Type.
+     * 
      * @param type A type of token to compare to the top token in the list.
      * @return Optional with the top token if the types match. 
      *         Empty Optional if else.
@@ -69,8 +74,7 @@ public class TokenHandler {
     }
 
     /**
-     * The getLastLineNumber() function.
-     * This is a function of my own making to allow for easier debuging for future users of this compiler :)
+     * Returns a string with the current index and line number to allow for easier debuging for future users of this compiler :)
      * @return A string containing the line and index of the last processed token.
      */
     String getErrorPosition(){
